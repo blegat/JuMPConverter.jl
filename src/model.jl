@@ -35,7 +35,7 @@ Base.@kwdef struct Constraint
 end
 
 mutable struct Model
-    params::OrderedCollections.OrderedDict{String,Parameter}
+    parameters::OrderedCollections.OrderedDict{String,Parameter}
     variables::OrderedCollections.OrderedDict{String,Variable}
     objective::Union{Nothing,Objective}
     constraints::Vector{Constraint}
