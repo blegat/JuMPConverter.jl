@@ -23,5 +23,7 @@ function _get_command(s::AbstractString, expected::Vector)
             end
         end
     end
-    error("Cannot parse element, does not start with any of the commands $expected in:\"\n$s\"")
+    return error(
+        "Cannot parse element, does not start with any of the commands $expected in:\"\n$s\"",
+    )
 end

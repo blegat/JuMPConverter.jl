@@ -1,4 +1,9 @@
-function parse_variable(model::JuMPConverter.Model, s::AbstractString; lower_bound::Union{Nothing,String} = nothing, upper_bound::Union{Nothing,String} = nothing)
+function parse_variable(
+    model::JuMPConverter.Model,
+    s::AbstractString;
+    lower_bound::Union{Nothing,String} = nothing,
+    upper_bound::Union{Nothing,String} = nothing,
+)
     for name in strip.(split(s, ','))
         push!(model, JuMPConverter.Variable(; name, lower_bound, upper_bound))
     end
@@ -17,7 +22,11 @@ function parse_solve(model::JuMPConverter.Model, s::AbstractString)
     return
 end
 
-function parse_constraint(model::JuMPConverter.Model, name::AbstractString, expression::AbstractString)
+function parse_constraint(
+    model::JuMPConverter.Model,
+    name::AbstractString,
+    expression::AbstractString,
+)
     expression = expression
     expression = replace(expression, "=e=" => "==")
     expression = replace(expression, "=l=" => "<=")
@@ -34,10 +43,12 @@ function parse_model(mod::AbstractString)
             [
                 "Model" => (_, _) -> nothing,
                 "Equations" => (_, _) -> nothing,
-                r"^Positive\s+Variables" => rest -> parse_variable(model, rest, lower_bound = "0"),
+                r"^Positive\s+Variables" =>
+                    rest -> parse_variable(model, rest, lower_bound = "0"),
                 "Variables" => (_, rest) -> parse_variable(model, rest),
                 "solve" => (_, rest) -> parse_solve(model, rest),
-                r"^(\w+).." => (command, rest) -> parse_constraint(model, command, rest),
+                r"^(\w+).." =>
+                    (command, rest) -> parse_constraint(model, command, rest),
             ],
         )
     end

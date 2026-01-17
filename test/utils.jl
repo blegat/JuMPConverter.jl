@@ -20,7 +20,7 @@ function test_io(reader, input_dir, output_dir)
         base_name = name(f)
         model = reader(joinpath(input_dir, f))
         open(tmp, "w") do io
-            println(io, model)
+            return println(io, model)
         end
         test_files(tmp, joinpath(output_dir, base_name * ".jl"))
     end
@@ -29,5 +29,5 @@ end
 function test_io(reader, root_dir)
     input_dir = joinpath(root_dir, "input")
     output_dir = joinpath(root_dir, "output")
-    test_io(reader, input_dir, output_dir)
+    return test_io(reader, input_dir, output_dir)
 end

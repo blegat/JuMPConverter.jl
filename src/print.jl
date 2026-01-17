@@ -32,7 +32,10 @@ function Base.show(io::IO, objective::Objective)
 end
 
 function Base.show(io::IO, constraint::Constraint)
-    print(io, "@constraint(model, $(constraint.name), $(constraint.expression))")
+    print(
+        io,
+        "@constraint(model, $(constraint.name), $(constraint.expression))",
+    )
     return
 end
 
@@ -47,4 +50,5 @@ function Base.show(io::IO, model::JuMPConverter.Model)
     end
     println(io, model.objective)
     print(io, "optimize!(model)")
+    return
 end
