@@ -27,8 +27,6 @@ function parse_constraint(
     name::AbstractString,
     expression::AbstractString,
 )
-    # Remove uneven spacing
-    expression = join(split(expression), ' ')
     expression = replace(expression, "=e=" => "==")
     expression = replace(expression, "=l=" => "<=")
     push!(model, JuMPConverter.Constraint(; name, expression))

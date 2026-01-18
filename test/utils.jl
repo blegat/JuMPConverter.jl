@@ -1,4 +1,5 @@
 using Test
+import JuliaFormatter
 import JuMPConverter
 
 function content(f)
@@ -14,14 +15,14 @@ end
 name(f) = split(f, ".")[1]
 
 function test_io(reader, input_dir, output_dir)
-    tmp = Base.Filesystem.tempname()
-    @info("Temporary file is $tmp")
+    tmp = joinpath(@__DIR__, "tmp.jl")
     @testset "$(name(f))" for f in readdir(input_dir)
         base_name = name(f)
         model = reader(joinpath(input_dir, f))
         open(tmp, "w") do io
             return println(io, model)
         end
+        JuliaFormatter.format_file(tmp)
         test_files(tmp, joinpath(output_dir, base_name * ".jl"))
     end
 end

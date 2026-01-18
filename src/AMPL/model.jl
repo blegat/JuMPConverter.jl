@@ -75,6 +75,7 @@ function parse_objective(sense::MOI.OptimizationSense, s::AbstractString)
     else
         name, expression = sp
     end
+    expression = clean_expression(expression)
     return JuMPConverter.Objective(; name, sense, expression)
 end
 
@@ -83,6 +84,7 @@ function parse_constraint(s::AbstractString)
     name, axe = strip.(split(header, limit = 2))
     axes, rest = parse_axes(axe)
     @assert isempty(rest)
+    expression = clean_expression(expression)
     return JuMPConverter.Constraint(; name, axes, expression)
 end
 
@@ -120,4 +122,11 @@ end
 
 function read_model(path::AbstractString)
     return parse_model(read(path, String))
+end
+
+# TODO write a proper parser
+function clean_expression(expr::AbstractString)
+    expr = replace(expr, "complements" => "⟂")
+    # 2./3 -> 2. / 3 otherwise Julia says it's ambiguous with broadcast
+    return replace(expr, "./" => ". /")
 end
