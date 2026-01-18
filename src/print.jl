@@ -4,9 +4,6 @@ function Base.show(io::IO, variable::Variable)
         print(io, "$(variable.lower_bound) <= ")
     end
     print(io, variable.name)
-    if !isnothing(variable.lower_bound) && !isnothing(variable.upper_bound)
-        print(io, "$(variable.lower_bound) <= ")
-    end
     if isnothing(variable.upper_bound)
         if !isnothing(variable.lower_bound)
             print(io, " >= $(variable.lower_bound)")
