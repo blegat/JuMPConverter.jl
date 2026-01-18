@@ -32,15 +32,16 @@ function parse_parameter(rest::AbstractString)
         JuMPConverter._get_command(
             rest,
             [
-                "default" => (_, s) -> begin
-                    def, rest = JuMPConverter.next_token(s)
-                    default = parse(Float64, def)
-                end,
+                "default" =>
+                    (_, s) -> begin
+                        def, rest = JuMPConverter.next_token(s)
+                        default = parse(Float64, def)
+                    end,
                 "integer" => (_, s) -> begin
                     integer = true
                     rest = s
                 end,
-            ]
+            ],
         )
     end
     return JuMPConverter.Parameter(; name, axes, integer, default)
@@ -56,9 +57,11 @@ function parse_variable(rest::AbstractString)
         JuMPConverter._get_command(
             rest,
             [
-                ">=" => (_, s) -> (lower_bound, rest) = JuMPConverter.next_token(rest),
-                "<=" => (_, s) -> (upper_bound, rest) = JuMPConverter.next_token(rest),
-            ]
+                ">=" =>
+                    (_, s) -> (lower_bound, rest) = JuMPConverter.next_token(s),
+                "<=" =>
+                    (_, s) -> (upper_bound, rest) = JuMPConverter.next_token(s),
+            ],
         )
     end
     return JuMPConverter.Variable(; name, axes, lower_bound, upper_bound)
@@ -85,6 +88,8 @@ end
 
 function parse_model(mod::AbstractString)
     model = JuMPConverter.Model()
+    # Remove comments
+    mod = replace(mod, r"#.*" => "")
     commands = filter(!isempty, strip.(split(mod, ';')))
     first_constraint = nothing
     for (i, command) in enumerate(commands)
@@ -93,11 +98,14 @@ function parse_model(mod::AbstractString)
             [
                 "param" => (_, rest) -> push!(model, parse_parameter(rest)),
                 "var" => (_, rest) -> push!(model, parse_variable(rest)),
-                "maximize" => (_, rest) -> model.objective = parse_objective(MOI.MAX_SENSE, rest),
-                "subject to" => (_, rest) -> begin
-                    push!(model, parse_constraint(rest))
-                    first_constraint = i + 1
-                end,
+                "maximize" =>
+                    (_, rest) ->
+                        model.objective = parse_objective(MOI.MAX_SENSE, rest),
+                "subject to" =>
+                    (_, rest) -> begin
+                        push!(model, parse_constraint(rest))
+                        first_constraint = i + 1
+                    end,
             ],
         )
         if !isnothing(first_constraint)

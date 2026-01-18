@@ -1,3 +1,4 @@
+# Inspired from https://theses.hal.science/tel-04299182 but with random values as data
 param S integer;
 param W integer;
 param H integer;

@@ -1,9 +1,9 @@
 using JuMP
 model = Model()
-@variable(model, >=0 <= xx>=0 <=  <= <=1)
-@variable(model, >=0 <= y>=0 <=  <= <=1)
-@variable(model, mu >= >=0)
-@variable(model, eta >= >=0)
+@variable(model, 0 <= xx <= 1)
+@variable(model, 0 <= y <= 1)
+@variable(model, mu >= 0)
+@variable(model, eta >= 0)
 @constraint(model, simplex, sum{w in 0..W}(y[s,w]) == 1)
 @constraint(model, testgeq, sum{h in 1..H}(polyX[x,3+h]*xx[round(polyX[x,1]),h]) >= polyX[x,3])
 @constraint(model, testeq, sum{h in 1..H}(polyX[x,3+h]*xx[round(polyX[x,1]),h]) == polyX[x,3])
