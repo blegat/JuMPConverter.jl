@@ -1,6 +1,6 @@
 # JuMPConverter.jl
 
-[![Build Status](https://github.com/blegat/JuMPConverter.jl/workflows/CI/badge.svg?branch=main)](https://github.com/blegat/JuMPConverter.jl/actions?query=workflow%3ACI)
+[![Build Status](https://github.com/blegat/JuMPConverter.jl/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/blegat/JuMPConverter.jl/actions?query=workflow%3ACI)
 [![codecov](https://codecov.io/gh/blegat/JuMPConverter.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/blegat/JuMPConverter.jl)
 
 [JuMPConverter.jl](https://github.com/blegat/JuMPConverter.jl) is a converter
