@@ -27,7 +27,7 @@ using JuMPConverter
 model = JuMPConverter.AMPL.read_model("file.mof")
 ```
 
-To read a AMPL™ model `file.gms`, do:
+To read a GAMS™ model `file.gms`, do:
 ```julia
 using JuMPConverter
 model = JuMPConverter.GAMS.read_model("file.gms")
