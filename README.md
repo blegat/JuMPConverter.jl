@@ -31,9 +31,6 @@ To read a GAMS™ model `file.gms`, do:
 ```julia
 using JuMPConverter
 model = JuMPConverter.GAMS.read_model("file.gms")
-open("file.jl", "w") do io
-    println(io, model)
-end
 ```
 
 To print the JuMP model to the terminal, simply do
