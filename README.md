@@ -4,7 +4,7 @@
 [![codecov](https://codecov.io/gh/blegat/JuMPConverter.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/blegat/JuMPConverter.jl)
 
 [JuMPConverter.jl](https://github.com/blegat/JuMPConverter.jl) is a converter
-for GAMS™ models in `.gmx` to [JuMP](https://github.com/jump-dev/JuMP.jl/)
+for AMPL™ models in `.mod` or GAMS™ models in `.gmx` to [JuMP](https://github.com/jump-dev/JuMP.jl/)
 models in `.jl`.
 
 ## License
@@ -21,16 +21,29 @@ Pkg.add("https://github.com/blegat/JuMPConverter.jl")
 
 ## Use with JuMP
 
-To use JuMPConverter to convert a file `file.gms` to a file `file.jl` do:
-
+To read an AMPL™ model `file.mod`, do
 ```julia
 using JuMPConverter
-convert_to("file.gms", "file.jl")
+model = JuMPConverter.AMPL.read_model("file.mof")
+```
+
+To read a AMPL™ model `file.gms`, do:
+```julia
+using JuMPConverter
+model = JuMPConverter.GAMS.read_model("file.gms")
+open("file.jl", "w") do io
+    println(io, model)
+end
 ```
 
 To print the JuMP model to the terminal, simply do
-
 ```julia
-using JuMPConverter
-convert_to("file.gms")
+println(io, model)
+```
+
+To save the JuMP model in a file `file.jl`, do
+```julia
+open("file.jl", "w") do io
+    println(io, model)
+end
 ```
