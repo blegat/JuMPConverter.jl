@@ -3,6 +3,9 @@
 [![Build Status](https://github.com/blegat/JuMPConverter.jl/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/blegat/JuMPConverter.jl/actions?query=workflow%3ACI)
 [![codecov](https://codecov.io/gh/blegat/JuMPConverter.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/blegat/JuMPConverter.jl)
 
+> [!INFO]
+> There is a [GSOC proposal](https://github.com/jump-dev/GSOC) to improve this package.
+
 [JuMPConverter.jl](https://github.com/blegat/JuMPConverter.jl) is a converter
 for AMPL™ models in `.mod` or GAMS™ models in `.gmx` to [JuMP](https://github.com/jump-dev/JuMP.jl/)
 models in `.jl`.
