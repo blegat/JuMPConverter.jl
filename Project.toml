@@ -15,3 +15,9 @@ JuMP = "1.29.3"
 MathOptInterface = "1.48.0"
 OrderedCollections = "1.7"
 julia = "1.10"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
