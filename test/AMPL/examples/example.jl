@@ -1,5 +1,3 @@
-using JuMPConverter
-
 # Example: Parse the quad_b1_S5.dat file
 dat_file = joinpath(@__DIR__, "..", "..", "optimTarif", "run_tests", "results", "quad_b1_S5.dat")
 
