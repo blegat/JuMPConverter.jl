@@ -20,6 +20,9 @@ Base.@kwdef struct Variable
     axes::Union{Nothing,Axes} = nothing
     lower_bound::Union{Nothing,String} = nothing
     upper_bound::Union{Nothing,String} = nothing
+    fixed_value::Union{Nothing,String} = nothing
+    binary::Bool = false
+    integer::Bool = false
 end
 
 Base.@kwdef struct Objective

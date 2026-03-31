@@ -1,15 +1,24 @@
 function Base.show(io::IO, variable::Variable)
     print(io, "@variable(model, ")
-    if !isnothing(variable.lower_bound) && !isnothing(variable.upper_bound)
-        print(io, "$(variable.lower_bound) <= ")
-    end
-    print(io, variable.name)
-    if isnothing(variable.upper_bound)
-        if !isnothing(variable.lower_bound)
-            print(io, " >= $(variable.lower_bound)")
-        end
+    if !isnothing(variable.fixed_value)
+        print(io, "$(variable.name) == $(variable.fixed_value)")
     else
-        print(io, " <= $(variable.upper_bound)")
+        if !isnothing(variable.lower_bound) && !isnothing(variable.upper_bound)
+            print(io, "$(variable.lower_bound) <= ")
+        end
+        print(io, variable.name)
+        if isnothing(variable.upper_bound)
+            if !isnothing(variable.lower_bound)
+                print(io, " >= $(variable.lower_bound)")
+            end
+        else
+            print(io, " <= $(variable.upper_bound)")
+        end
+    end
+    if variable.binary
+        print(io, ", Bin")
+    elseif variable.integer
+        print(io, ", Int")
     end
     print(io, ")")
     return
