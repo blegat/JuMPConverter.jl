@@ -1,0 +1,24 @@
+using JuMP
+model = Model()
+@variable(model, objvar)
+@variable(model, 0 <= X0 <= 9.524814060426158e-14)
+@variable(model, 0.9999999924748484 <= X1 <= 1.000000007525152)
+@variable(model, 0.9999999849496968 <= X3 <= 1.000000015050303)
+@variable(model, 0.9999999841971816 <= X2 <= 1.000000015802819)
+@constraint(
+    model,
+    E1,
+    - X0 - 2*X1 + X3 + 100*SQR(X2) - 200*X2*X3 + 100*SQR(X3) == -1
+)
+@constraint(model, E2, - X3 + SQR(X1) == 0)
+@constraint(model, E3, - 2*X1 + SQR(X1) >= -1)
+@constraint(model, E4, 2*X1 + SQR(X1) >= -1)
+@constraint(model, E5, - 2*X2 + SQR(X2) >= -1)
+@constraint(model, E6, 2*X2 + SQR(X2) >= -1)
+@constraint(model, E7, - 2*X3 + SQR(X3) >= -1)
+@constraint(model, E8, 2*X3 + SQR(X3) >= -1)
+@constraint(model, E9, SQR(X2) - 2*X2*X3 + SQR(X3) >= 0)
+@constraint(model, E10, SQR(X2) + 2*X2*X3 + SQR(X3) >= 0)
+@constraint(model, E11, objvar == X0)
+@objective(model, Min, objvar)
+optimize!(model)

@@ -1,0 +1,55 @@
+using JuMP
+model = Model()
+@variable(model, objvar)
+@variable(model, -30667.69600953783 <= X0 <= -30661.59698011254)
+@variable(model, 78 <= X7 <= 78.02611928452818)
+@variable(model, 36.76139514496808 <= X11 <= 36.79449139612159)
+@variable(model, 29.99146780703991 <= X9 <= 29.99820202033574)
+@variable(model, 91.99342334053699 <= X1 <= 92.00586827445963)
+@variable(model, 44.95092840290139 <= X10 <= 45)
+@variable(model, 33 <= X8 <= 33.01440770785716)
+@variable(model, -0.006576659462999679 <= X2 <= 0)
+@variable(model, 8.836611460371907 <= X3 <= 8.855011834228673)
+@variable(model, -11.1633885396281 <= X4 <= -11.14498816577133)
+@variable(model, 0 <= X5 <= 0.004668873085501346)
+@variable(model, -5.005029297923289 <= X6 <= -4.995331126914498)
+@constraint(
+    model,
+    E1,
+    - X0 + 37.2932*X7 + 0.835689*X7*X11 + 5.35785*SQR(X9) == 40792.1
+)
+@constraint(
+    model,
+    E2,
+    - X1 + 0.0006262*X7*X10 + 0.0056858*X8*X11 - 0.0022053*X9*X11 == -85.3344
+)
+@constraint(
+    model,
+    E3,
+    - X2 + 0.0006262*X7*X10 + 0.0056858*X8*X11 - 0.0022053*X9*X11 == 6.66559
+)
+@constraint(
+    model,
+    E4,
+    - X3 + 0.0029955*X7*X8 + 0.0071317*X8*X11 + 0.0021813*SQR(X9) == 9.48751
+)
+@constraint(
+    model,
+    E5,
+    - X4 + 0.0029955*X7*X8 + 0.0071317*X8*X11 + 0.0021813*SQR(X9) == 29.4875
+)
+@constraint(
+    model,
+    E6,
+    - X5 + 0.0012547*X7*X9 + 0.0019085*X9*X10 + 0.0047026*X9*X11 == 10.699
+)
+@constraint(
+    model,
+    E7,
+    - X6 + 0.0012547*X7*X9 + 0.0019085*X9*X10 + 0.0047026*X9*X11 == 15.699
+)
+@constraint(model, E8, - 2*X9 + SQR(X9) >= -1)
+@constraint(model, E9, 2*X9 + SQR(X9) >= -1)
+@constraint(model, E10, objvar == X0)
+@objective(model, Min, objvar)
+optimize!(model)

@@ -1,0 +1,118 @@
+using JuMP
+model = Model()
+@variable(model, objvar)
+@variable(model, -145.6500000000007 <= X0 <= 155.4000000000003)
+@variable(model, 5.4 <= X12 <= 6.4)
+@variable(model, 0.4 <= X13 <= 1.4)
+@variable(model, 4.9 <= X14 <= 5.9)
+@variable(model, 1.3 <= X15 <= 2.3)
+@variable(model, 3.9 <= X16 <= 4.9)
+@variable(model, 2.1 <= X17 <= 3.1)
+@variable(model, 4.1 <= X18 <= 5.1)
+@variable(model, 2.8 <= X19 <= 3.8)
+@variable(model, 3 <= X20 <= 4)
+@variable(model, 3.9 <= X21 <= 4.9)
+@variable(model, 3.2 <= X22 <= 4.2)
+@variable(model, 4.7 <= X23 <= 5.7)
+@variable(model, 2.3 <= X24 <= 3.3)
+@variable(model, 5.6 <= X25 <= 6.6)
+@variable(model, 2.3 <= X26 <= 3.3)
+@variable(model, 6 <= X27 <= 7)
+@variable(model, 1.9 <= X28 <= 2.9)
+@variable(model, 6.9 <= X29 <= 7.9)
+@variable(model, 1 <= X30 <= 2)
+@variable(model, -0.5 <= X11 <= 0.5)
+@variable(model, 0 <= X1 <= 0)
+@variable(model, 3.850335630491423 <= X31 <= 7.949664369508578)
+@variable(model, -2 <= X32 <= 2)
+@variable(model, -2 <= X33 <= 2)
+@variable(model, 0 <= X35 <= 0.25)
+@variable(model, -0.1986574780343083 <= X36 <= 0.1986574780343083)
+@variable(model, 0 <= X2 <= 0)
+@variable(model, 0.16 <= X37 <= 1.96)
+@variable(model, -0.5562409384960634 <= X38 <= 0.5402672288114432)
+@variable(model, 0 <= X3 <= 0)
+@variable(model, 1.69 <= X39 <= 5.29)
+@variable(model, -0.9138243989578183 <= X40 <= 0.8875818759045137)
+@variable(model, 0 <= X4 <= 0)
+@variable(model, 4.41 <= X41 <= 9.610000000000001)
+@variable(model, -1.231676363812712 <= X42 <= 1.19630600665391)
+@variable(model, 0 <= X5 <= 0)
+@variable(model, 7.839999999999999 <= X43 <= 14.44)
+@variable(model, -1.509796833060743 <= X44 <= 1.466439621059631)
+@variable(model, 0 <= X6 <= 0)
+@variable(model, 15.21 <= X45 <= 24.01000000000001)
+@variable(model, -1.946843284736222 <= X46 <= 1.890935300840051)
+@variable(model, 0 <= X7 <= 0)
+@variable(model, 22.09 <= X47 <= 32.49000000000001)
+@variable(model, -2.264695249591115 <= X48 <= 2.199659431589447)
+@variable(model, 0 <= X8 <= 0)
+@variable(model, 31.36 <= X49 <= 43.56)
+@variable(model, -2.62227871005287 <= X50 <= 2.546974078682517)
+@variable(model, 0 <= X9 <= 0)
+@variable(model, 36 <= X51 <= 49)
+@variable(model, -2.781204692480317 <= X52 <= 2.701336144057216)
+@variable(model, 0 <= X10 <= 0)
+@variable(model, 47.61 <= X53 <= 62.41000000000001)
+@variable(model, -3.138788152942072 <= X54 <= 3.048650791150286)
+@variable(model, -0.3973149560686167 <= X34 <= 0.3859051634367451)
+@constraint(
+    model,
+    E1,
+    - X0 - 11.8*X12 - 1.8*X13 - 10.8*X14 - 3.6*X15 - 8.8*X16 - 5.2*X17 -
+    9.2*X18 - 6.6*X19 - 7*X20 - 8.8*X21 - 7.4*X22 - 10.4*X23 - 5.6*X24 -
+    12.2*X25 - 5.6*X26 - 13*X27 - 4.8*X28 - 14.8*X29 - 3*X30 +
+    SQR(X11) +
+    SQR(X12) +
+    SQR(X13) +
+    SQR(X14) +
+    SQR(X15) +
+    SQR(X16) +
+    SQR(X17) +
+    SQR(X18) +
+    SQR(X19) +
+    SQR(X20) +
+    SQR(X21) +
+    SQR(X22) +
+    SQR(X23) +
+    SQR(X24) +
+    SQR(X25) +
+    SQR(X26) +
+    SQR(X27) +
+    SQR(X28) +
+    SQR(X29) +
+    SQR(X30) == -356.44
+)
+@constraint(model, E2, - X1 - X12 + X31 + X11*X32 + X33*X35 + X35*X36 == 0)
+@constraint(model, E3, - X2 - X14 + X31 + X13*X32 + X33*X37 + X37*X38 == 0)
+@constraint(model, E4, - X3 - X16 + X31 + X15*X32 + X33*X39 + X39*X40 == 0)
+@constraint(model, E5, - X4 - X18 + X31 + X17*X32 + X33*X41 + X41*X42 == 0)
+@constraint(model, E6, - X5 - X20 + X31 + X19*X32 + X33*X43 + X43*X44 == 0)
+@constraint(model, E7, - X6 - X22 + X31 + X21*X32 + X33*X45 + X45*X46 == 0)
+@constraint(model, E8, - X7 - X24 + X31 + X23*X32 + X33*X47 + X47*X48 == 0)
+@constraint(model, E9, - X8 - X26 + X31 + X25*X32 + X33*X49 + X49*X50 == 0)
+@constraint(model, E10, - X9 - X28 + X31 + X27*X32 + X33*X51 + X51*X52 == 0)
+@constraint(model, E11, - X10 - X30 + X31 + X29*X32 + X33*X53 + X53*X54 == 0)
+@constraint(model, E12, - X36 + X11*X34 == 0)
+@constraint(model, E13, - X35 + SQR(X11) == 0)
+@constraint(model, E14, - X38 + X13*X34 == 0)
+@constraint(model, E15, - X37 + SQR(X13) == 0)
+@constraint(model, E16, - X40 + X15*X34 == 0)
+@constraint(model, E17, - X39 + SQR(X15) == 0)
+@constraint(model, E18, - X42 + X17*X34 == 0)
+@constraint(model, E19, - X41 + SQR(X17) == 0)
+@constraint(model, E20, - X44 + X19*X34 == 0)
+@constraint(model, E21, - X43 + SQR(X19) == 0)
+@constraint(model, E22, - X46 + X21*X34 == 0)
+@constraint(model, E23, - X45 + SQR(X21) == 0)
+@constraint(model, E24, - X48 + X23*X34 == 0)
+@constraint(model, E25, - X47 + SQR(X23) == 0)
+@constraint(model, E26, - X50 + X25*X34 == 0)
+@constraint(model, E27, - X49 + SQR(X25) == 0)
+@constraint(model, E28, - X52 + X27*X34 == 0)
+@constraint(model, E29, - X51 + SQR(X27) == 0)
+@constraint(model, E30, - X54 + X29*X34 == 0)
+@constraint(model, E31, - X53 + SQR(X29) == 0)
+@constraint(model, E32, objvar == X0)
+@objective(model, Min, objvar)
+optimize!(model)

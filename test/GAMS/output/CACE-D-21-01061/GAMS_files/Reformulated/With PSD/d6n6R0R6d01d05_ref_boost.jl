@@ -1,0 +1,428 @@
+using JuMP
+model = Model()
+@variable(model, objvar)
+@variable(model, 0 <= X5 <= 18.22290000000001)
+@variable(model, 0.9399999999999999 <= X6 <= 2.31)
+@variable(model, 0.4406639166731192 <= X7 <= 2.63)
+@variable(model, 0.35 <= X8 <= 2.72)
+@variable(model, 0.9399999999999999 <= X9 <= 2.9)
+@variable(model, 0.87 <= X10 <= 2.57)
+@variable(model, 0.86 <= X11 <= 2.68)
+@variable(model, -8860.907371560847 <= X0 <= 85287.38857257293)
+@variable(model, 0.7482 <= X42 <= 6.887600000000001)
+@variable(model, 0.7598959999999998 <= X45 <= 17.95332000000001)
+@variable(model, 0.1449784285854562 <= X47 <= 20.74544)
+@variable(model, 0.1341821626269648 <= X48 <= 18.384752)
+@variable(model, 0.6535105599999997 <= X57 <= 38.32600464000001)
+@variable(model, 0.6535105599999997 <= X72 <= 60.40398400000002)
+@variable(model, 0.3833776075056137 <= X32 <= 6.7591)
+@variable(model, 0.7568999999999999 <= X41 <= 6.6049)
+@variable(model, 0.108241 <= X54 <= 39.47860224000001)
+@variable(model, 0.09272024999999998 <= X67 <= 48.86569216000001)
+@variable(model, 0.2461577999999999 <= X69 <= 54.32938880000002)
+@variable(model, 0.1261312328693469 <= X65 <= 53.31578080000001)
+@variable(model, 0.6687968399999997 <= X71 <= 55.547209)
+@variable(model, 0.5470081599999999 <= X75 <= 51.58686976000002)
+@variable(model, 0.3009999999999999 <= X37 <= 7.289600000000001)
+@variable(model, 0.3259150327714389 <= X50 <= 18.889712)
+@variable(model, 0.09060099999999997 <= X68 <= 53.13826816000002)
+@variable(model, 0.5728976099999998 <= X73 <= 43.62470401)
+@variable(model, 0.1715815898376181 <= X53 <= 36.90927009000001)
+@variable(model, 0.6687968399999997 <= X56 <= 35.24440689000001)
+@variable(model, 0.8835999999999998 <= X23 <= 5.336100000000001)
+@variable(model, 0.8177999999999999 <= X39 <= 7.452999999999999)
+@variable(model, 0.414224081672732 <= X24 <= 6.0753)
+@variable(model, 0.1941846874576937 <= X29 <= 6.9169)
+@variable(model, 0.1362797228703288 <= X58 <= 47.92196640000002)
+@variable(model, 0.02378762421356748 <= X63 <= 51.17399296000001)
+@variable(model, 0.1469783899367283 <= X64 <= 45.68543281)
+@variable(model, 0.329 <= X25 <= 6.283200000000001)
+@variable(model, 0.329 <= X35 <= 7.888000000000001)
+@variable(model, 0.8177999999999999 <= X27 <= 5.9367)
+@variable(model, 0.3387524539919602 <= X59 <= 45.27921090000001)
+@variable(model, 0.7807489599999996 <= X70 <= 70.72810000000001)
+@variable(model, 0.8083999999999999 <= X28 <= 6.190800000000001)
+@variable(model, 0.7807489599999996 <= X55 <= 44.87660100000002)
+@variable(model, 0.1326398389186089 <= X49 <= 19.171648)
+@variable(model, 0.1542323708355917 <= X30 <= 7.153600000000001)
+@variable(model, 0.108241 <= X66 <= 62.22054400000002)
+@variable(model, 0.414224081672732 <= X31 <= 7.627)
+@variable(model, 0.6434519999999999 <= X51 <= 18.458768)
+@variable(model, 0.3348587476242365 <= X60 <= 47.21723160000001)
+@variable(model, 0.0377076928430422 <= X62 <= 47.84350561)
+@variable(model, 0.7807489599999996 <= X52 <= 28.47396321000001)
+@variable(model, 0.3789709683388825 <= X33 <= 7.048400000000001)
+@variable(model, 0.1689406780881935 <= X46 <= 17.776433)
+@variable(model, 0.6611095199999997 <= X61 <= 46.14003240000001)
+@variable(model, 0.1225 <= X34 <= 7.398400000000001)
+@variable(model, 0.8083999999999999 <= X40 <= 7.772)
+@variable(model, 0.5598032399999998 <= X74 <= 47.43903376000001)
+@variable(model, 0.3044999999999999 <= X36 <= 6.9904)
+@variable(model, 0.8835999999999998 <= X38 <= 8.41)
+@variable(model, 0.7395999999999999 <= X43 <= 7.182400000000001)
+@variable(model, 0.8305839999999998 <= X44 <= 19.4271)
+@variable(model, 0 <= X1 <= 27.04178800000001)
+@variable(model, -0 <= X2 <= 369.3649531607918)
+@variable(model, -0 <= X3 <= 1925.347478888504)
+@variable(model, -0 <= X4 <= 14274.33240814638)
+@variable(model, 0.8835999999999998 <= X26 <= 6.699000000000001)
+@constraint(
+    model,
+    E1,
+    - X5 + 2.12*X6 + 7.51*X7 + 0.88*X8 + 0.1*X9 - 3.84*X10 + 4.47*X11 == 17.748
+)
+@constraint(
+    model,
+    E2,
+    - X0 +
+    2.14*X6 +
+    3.77*X7 +
+    9.18*X8 +
+    3.48*X9 +
+    2.8*X10 +
+    6.86*X11 +
+    6.57*X42 +
+    6.13*X45 +
+    7.83*X47 +
+    4.81*X48 +
+    8.38*X57 - 4.34*X72 - 2.05*X6*X32 +
+    1.94*X6*X41 +
+    4.7*X6*X54 +
+    9.54*X6*X67 +
+    1.73*X6*X69 +
+    0.52*X7*X65 +
+    5.09*X7*X69 - 9.14*X7*X71 +
+    1.42*X7*X75 +
+    6.25*X8*X37 +
+    2.72*X8*X50 +
+    3.86*X8*X68 +
+    6.5*X8*X73 +
+    7.44*X9*X53 +
+    8.7*X10*X56 +
+    4.41*X11*X56 +
+    2.86*X11*X67 +
+    9.77*X11*X68 +
+    1.22*X11*X71 +
+    4.42*X23*X39 +
+    6.99*X23*X45 +
+    0.6*X23*X48 +
+    8.94*X23*X65 +
+    5.05*X23*X67 +
+    1.57*X23*X69 +
+    0.23*X24*X29 - 0.01*X24*X58 +
+    4.23*X24*X63 +
+    4*X24*X64 +
+    7.29*X25*X35 +
+    9.43*X25*X53 +
+    6.58*X27*X59 +
+    2.15*X27*X70 +
+    9.43*X28*X54 +
+    7.07*X28*X55 +
+    4.24*X28*X63 +
+    6.51*X28*X64 +
+    4.14*X29*X49 +
+    3.59*X30*X65 - 5.75*X30*X66 +
+    3.51*X30*X68 +
+    3.39*X31*X51 +
+    5.7*X31*X59 +
+    6.19*X31*X60 - 1.68*X31*X62 +
+    2.64*X31*X64 +
+    0.21*X31*X75 +
+    8.41*X32*X52 +
+    9.19*X32*X57 +
+    7.96*X32*X75 +
+    7.97*X33*X46 +
+    5.85*X33*X56 +
+    5.71*X33*X61 +
+    4.29*X33*X68 +
+    3.07*X34*X40 +
+    0.95*X34*X47 +
+    9.29*X34*X48 +
+    1.82*X34*X58 +
+    4.72*X34*X61 +
+    2.59*X35*X67 +
+    5.05*X35*X74 +
+    8.02*X36*X53 +
+    2.76*X36*X55 +
+    1.52*X36*X62 - 0.65*X36*X66 +
+    1.16*X36*X70 +
+    5.21*X36*X74 +
+    8.44*X37*X52 +
+    1.84*X37*X60 +
+    5.09*X37*X64 +
+    6.72*X37*X67 +
+    9.29*X38*X46 +
+    6.73*X38*X60 +
+    9.18*X38*X65 +
+    3.84*X39*X42 +
+    7.39*X39*X74 +
+    1.39*X40*X43 +
+    0.24*X40*X72 - 4.35*X41*X59 - 8.46*X41*X61 +
+    0.57*X42*X54 +
+    0.43*X42*X68 +
+    0.73*SQR(X44) +
+    5.48*SQR(X46) +
+    3.35*SQR(X50) +
+    1.82*SQR(X51) == 0
+)
+@constraint(
+    model,
+    E3,
+    - X1 - 4.68*X6 +
+    3.43*X7 +
+    6.43*X8 +
+    3.02*X9 +
+    1.23*X10 +
+    2.37*X11 +
+    1.63*X42 == 24.567
+)
+@constraint(
+    model,
+    E4,
+    - X2 + 8.51*X6 - 6.49*X7 +
+    1.43*X8 +
+    9.06*X9 +
+    9.75*X10 +
+    0.23*X11 +
+    2.2*X42 - 5.34*X45 +
+    2.78*X47 +
+    5.59*X48 +
+    4.68*X6*X32 +
+    2.7*X6*X41 +
+    6.18*X8*X37 == 111.61
+)
+@constraint(
+    model,
+    E5,
+    - X3 + 7.41*X6 + 3.44*X7 + 0.9*X8 - 4.28*X9 +
+    0.3*X10 +
+    8.56*X11 +
+    9.06*X42 +
+    5.05*X45 +
+    1.26*X47 +
+    2.24*X48 +
+    1.2*X57 +
+    4.99*X72 +
+    7.77*X6*X32 +
+    4.76*X6*X41 +
+    4.68*X8*X37 +
+    0.82*X8*X50 +
+    5.3*X23*X39 +
+    8.21*X24*X29 +
+    9.43*X25*X35 +
+    1.06*X34*X40 +
+    0.83*X39*X42 +
+    6.17*X40*X43 == 490.743
+)
+@constraint(
+    model,
+    E6,
+    - X4 - 3.69*X6 +
+    0.66*X7 +
+    2.09*X8 +
+    3.61*X9 +
+    1.15*X10 +
+    8.39*X11 +
+    4.65*X42 +
+    9.39*X45 - 1.07*X47 +
+    3.64*X48 +
+    4.13*X57 +
+    1.18*X72 +
+    2.24*X6*X32 +
+    8.98*X6*X41 +
+    0.69*X6*X54 +
+    1.56*X6*X67 - 8.83*X6*X69 +
+    8.44*X7*X65 +
+    6.52*X7*X69 +
+    9.15*X7*X71 +
+    7.11*X7*X75 +
+    9.22*X8*X37 - 9.05*X8*X50 +
+    3.14*X8*X68 +
+    4.87*X8*X73 +
+    5.29*X9*X53 +
+    0.2*X10*X56 +
+    7.57*X11*X56 +
+    4.01*X11*X67 +
+    8.72*X11*X68 +
+    3.32*X11*X71 +
+    9.65*X23*X39 +
+    1.39*X23*X45 +
+    9.92*X23*X48 +
+    3.77*X24*X29 +
+    3.59*X25*X35 +
+    0.33*X29*X49 +
+    4.96*X31*X51 +
+    7.43*X33*X46 +
+    2.17*X34*X40 +
+    0.19*X34*X47 +
+    6.42*X34*X48 +
+    5.15*X38*X46 +
+    1.01*X39*X42 +
+    8.58*X40*X43 == 1689.29
+)
+@constraint(model, E7, - X43 + SQR(X11) == 0)
+@constraint(model, E8, - X51 + X10*X43 == 0)
+@constraint(model, E9, - X39 + X9*X10 == 0)
+@constraint(model, E10, - X74 + X10*X51 == 0)
+@constraint(model, E11, - X40 + X9*X11 == 0)
+@constraint(model, E12, - X72 + SQR(X40) == 0)
+@constraint(model, E13, - X36 + X8*X10 == 0)
+@constraint(model, E14, - X35 + X8*X9 == 0)
+@constraint(model, E15, - X38 + SQR(X9) == 0)
+@constraint(model, E16, - X70 + SQR(X38) == 0)
+@constraint(model, E17, - X42 + X10*X11 == 0)
+@constraint(model, E18, - X37 + X8*X11 == 0)
+@constraint(model, E19, - X68 + SQR(X37) == 0)
+@constraint(model, E20, - X67 + SQR(X36) == 0)
+@constraint(model, E21, - X66 + SQR(X35) == 0)
+@constraint(model, E22, - X32 + X7*X10 == 0)
+@constraint(model, E23, - X75 + SQR(X43) == 0)
+@constraint(model, E24, - X31 + X7*X9 == 0)
+@constraint(model, E25, - X65 + X31*X36 == 0)
+@constraint(model, E26, - X33 + X7*X11 == 0)
+@constraint(model, E27, - X30 + X7*X8 == 0)
+@constraint(model, E28, - X50 + X7*X43 == 0)
+@constraint(model, E29, - X64 + SQR(X32) == 0)
+@constraint(model, E30, - X46 + X7*X32 == 0)
+@constraint(model, E31, - X29 + SQR(X7) == 0)
+@constraint(model, E32, - X62 + SQR(X29) == 0)
+@constraint(model, E33, - X26 + X6*X9 == 0)
+@constraint(model, E34, - X61 + X26*X42 == 0)
+@constraint(model, E35, - X41 + SQR(X10) == 0)
+@constraint(model, E36, - X27 + X6*X10 == 0)
+@constraint(model, E37, - X34 + SQR(X8) == 0)
+@constraint(model, E38, - X59 + X26*X32 == 0)
+@constraint(model, E39, - X60 + X26*X33 == 0)
+@constraint(model, E40, - X58 + X26*X30 == 0)
+@constraint(model, E41, - X28 + X6*X11 == 0)
+@constraint(model, E42, - X63 + X29*X34 == 0)
+@constraint(model, E43, - X24 + X6*X7 == 0)
+@constraint(model, E44, - X44 + X6*X38 == 0)
+@constraint(model, E45, - X69 + X35*X42 == 0)
+@constraint(model, E46, - X23 + SQR(X6) == 0)
+@constraint(model, E47, - X55 + X6*X44 == 0)
+@constraint(model, E48, - X54 + X23*X34 == 0)
+@constraint(model, E49, - X57 + X23*X43 == 0)
+@constraint(model, E50, - X56 + X23*X41 == 0)
+@constraint(model, E51, - X53 + X23*X29 == 0)
+@constraint(model, E52, - X25 + X6*X8 == 0)
+@constraint(model, E53, - X52 + SQR(X23) == 0)
+@constraint(model, E54, - X71 + X38*X41 == 0)
+@constraint(model, E55, - X73 + SQR(X41) == 0)
+@constraint(model, E56, - X48 + X7*X36 == 0)
+@constraint(model, E57, - X47 + X7*X35 == 0)
+@constraint(model, E58, - X49 + X7*X37 == 0)
+@constraint(model, E59, - X45 + X6*X40 == 0)
+@constraint(model, E60, - 2*X6 + SQR(X6) >= -1)
+@constraint(model, E61, 2*X6 + SQR(X6) >= -1)
+@constraint(model, E62, - 2*X7 + SQR(X7) >= -1)
+@constraint(model, E63, 2*X7 + SQR(X7) >= -1)
+@constraint(model, E64, - 2*X8 + SQR(X8) >= -1)
+@constraint(model, E65, 2*X8 + SQR(X8) >= -1)
+@constraint(model, E66, - 2*X9 + SQR(X9) >= -1)
+@constraint(model, E67, 2*X9 + SQR(X9) >= -1)
+@constraint(model, E68, - 2*X10 + SQR(X10) >= -1)
+@constraint(model, E69, 2*X10 + SQR(X10) >= -1)
+@constraint(model, E70, - 2*X11 + SQR(X11) >= -1)
+@constraint(model, E71, 2*X11 + SQR(X11) >= -1)
+@constraint(model, E72, - 2*X23 + SQR(X23) >= -1)
+@constraint(model, E73, 2*X23 + SQR(X23) >= -1)
+@constraint(model, E74, - 2*X29 + SQR(X29) >= -1)
+@constraint(model, E75, 2*X29 + SQR(X29) >= -1)
+@constraint(model, E76, - 2*X32 + SQR(X32) >= -1)
+@constraint(model, E77, 2*X32 + SQR(X32) >= -1)
+@constraint(model, E78, - 2*X35 + SQR(X35) >= -1)
+@constraint(model, E79, 2*X35 + SQR(X35) >= -1)
+@constraint(model, E80, - 2*X36 + SQR(X36) >= -1)
+@constraint(model, E81, 2*X36 + SQR(X36) >= -1)
+@constraint(model, E82, - 2*X37 + SQR(X37) >= -1)
+@constraint(model, E83, 2*X37 + SQR(X37) >= -1)
+@constraint(model, E84, - 2*X38 + SQR(X38) >= -1)
+@constraint(model, E85, 2*X38 + SQR(X38) >= -1)
+@constraint(model, E86, - 2*X40 + SQR(X40) >= -1)
+@constraint(model, E87, 2*X40 + SQR(X40) >= -1)
+@constraint(model, E88, - 2*X41 + SQR(X41) >= -1)
+@constraint(model, E89, 2*X41 + SQR(X41) >= -1)
+@constraint(model, E90, - 2*X43 + SQR(X43) >= -1)
+@constraint(model, E91, 2*X43 + SQR(X43) >= -1)
+@constraint(model, E92, - 2*X44 + SQR(X44) >= -1)
+@constraint(model, E93, 2*X44 + SQR(X44) >= -1)
+@constraint(model, E94, - 2*X46 + SQR(X46) >= -1)
+@constraint(model, E95, 2*X46 + SQR(X46) >= -1)
+@constraint(model, E96, - 2*X50 + SQR(X50) >= -1)
+@constraint(model, E97, 2*X50 + SQR(X50) >= -1)
+@constraint(model, E98, - 2*X51 + SQR(X51) >= -1)
+@constraint(model, E99, 2*X51 + SQR(X51) >= -1)
+@constraint(model, E100, SQR(X6) - 2*X6*X7 + SQR(X7) >= 0)
+@constraint(model, E101, SQR(X6) + 2*X6*X7 + SQR(X7) >= 0)
+@constraint(model, E102, SQR(X6) - 2*X6*X8 + SQR(X8) >= 0)
+@constraint(model, E103, SQR(X6) + 2*X6*X8 + SQR(X8) >= 0)
+@constraint(model, E104, SQR(X6) - 2*X6*X9 + SQR(X9) >= 0)
+@constraint(model, E105, SQR(X6) + 2*X6*X9 + SQR(X9) >= 0)
+@constraint(model, E106, SQR(X6) - 2*X6*X10 + SQR(X10) >= 0)
+@constraint(model, E107, SQR(X6) + 2*X6*X10 + SQR(X10) >= 0)
+@constraint(model, E108, SQR(X6) - 2*X6*X11 + SQR(X11) >= 0)
+@constraint(model, E109, SQR(X6) + 2*X6*X11 + SQR(X11) >= 0)
+@constraint(model, E110, SQR(X6) - 2*X6*X32 + SQR(X32) >= 0)
+@constraint(model, E111, SQR(X6) + 2*X6*X32 + SQR(X32) >= 0)
+@constraint(model, E112, SQR(X6) - 2*X6*X38 + SQR(X38) >= 0)
+@constraint(model, E113, SQR(X6) + 2*X6*X38 + SQR(X38) >= 0)
+@constraint(model, E114, SQR(X6) - 2*X6*X40 + SQR(X40) >= 0)
+@constraint(model, E115, SQR(X6) + 2*X6*X40 + SQR(X40) >= 0)
+@constraint(model, E116, SQR(X6) - 2*X6*X41 + SQR(X41) >= 0)
+@constraint(model, E117, SQR(X6) + 2*X6*X41 + SQR(X41) >= 0)
+@constraint(model, E118, SQR(X6) - 2*X6*X44 + SQR(X44) >= 0)
+@constraint(model, E119, SQR(X6) + 2*X6*X44 + SQR(X44) >= 0)
+@constraint(model, E120, SQR(X7) - 2*X7*X8 + SQR(X8) >= 0)
+@constraint(model, E121, SQR(X7) + 2*X7*X8 + SQR(X8) >= 0)
+@constraint(model, E122, SQR(X7) - 2*X7*X9 + SQR(X9) >= 0)
+@constraint(model, E123, SQR(X7) + 2*X7*X9 + SQR(X9) >= 0)
+@constraint(model, E124, SQR(X7) - 2*X7*X10 + SQR(X10) >= 0)
+@constraint(model, E125, SQR(X7) + 2*X7*X10 + SQR(X10) >= 0)
+@constraint(model, E126, SQR(X7) - 2*X7*X11 + SQR(X11) >= 0)
+@constraint(model, E127, SQR(X7) + 2*X7*X11 + SQR(X11) >= 0)
+@constraint(model, E128, SQR(X7) - 2*X7*X32 + SQR(X32) >= 0)
+@constraint(model, E129, SQR(X7) + 2*X7*X32 + SQR(X32) >= 0)
+@constraint(model, E130, SQR(X7) - 2*X7*X35 + SQR(X35) >= 0)
+@constraint(model, E131, SQR(X7) + 2*X7*X35 + SQR(X35) >= 0)
+@constraint(model, E132, SQR(X7) - 2*X7*X36 + SQR(X36) >= 0)
+@constraint(model, E133, SQR(X7) + 2*X7*X36 + SQR(X36) >= 0)
+@constraint(model, E134, SQR(X7) - 2*X7*X37 + SQR(X37) >= 0)
+@constraint(model, E135, SQR(X7) + 2*X7*X37 + SQR(X37) >= 0)
+@constraint(model, E136, SQR(X7) - 2*X7*X43 + SQR(X43) >= 0)
+@constraint(model, E137, SQR(X7) + 2*X7*X43 + SQR(X43) >= 0)
+@constraint(model, E138, SQR(X8) - 2*X8*X9 + SQR(X9) >= 0)
+@constraint(model, E139, SQR(X8) + 2*X8*X9 + SQR(X9) >= 0)
+@constraint(model, E140, SQR(X8) - 2*X8*X10 + SQR(X10) >= 0)
+@constraint(model, E141, SQR(X8) + 2*X8*X10 + SQR(X10) >= 0)
+@constraint(model, E142, SQR(X8) - 2*X8*X11 + SQR(X11) >= 0)
+@constraint(model, E143, SQR(X8) + 2*X8*X11 + SQR(X11) >= 0)
+@constraint(model, E144, SQR(X8) - 2*X8*X37 + SQR(X37) >= 0)
+@constraint(model, E145, SQR(X8) + 2*X8*X37 + SQR(X37) >= 0)
+@constraint(model, E146, SQR(X8) - 2*X8*X50 + SQR(X50) >= 0)
+@constraint(model, E147, SQR(X8) + 2*X8*X50 + SQR(X50) >= 0)
+@constraint(model, E148, SQR(X9) - 2*X9*X10 + SQR(X10) >= 0)
+@constraint(model, E149, SQR(X9) + 2*X9*X10 + SQR(X10) >= 0)
+@constraint(model, E150, SQR(X9) - 2*X9*X11 + SQR(X11) >= 0)
+@constraint(model, E151, SQR(X9) + 2*X9*X11 + SQR(X11) >= 0)
+@constraint(model, E152, SQR(X10) - 2*X10*X11 + SQR(X11) >= 0)
+@constraint(model, E153, SQR(X10) + 2*X10*X11 + SQR(X11) >= 0)
+@constraint(model, E154, SQR(X10) - 2*X10*X43 + SQR(X43) >= 0)
+@constraint(model, E155, SQR(X10) + 2*X10*X43 + SQR(X43) >= 0)
+@constraint(model, E156, SQR(X10) - 2*X10*X51 + SQR(X51) >= 0)
+@constraint(model, E157, SQR(X10) + 2*X10*X51 + SQR(X51) >= 0)
+@constraint(model, E158, SQR(X23) - 2*X23*X29 + SQR(X29) >= 0)
+@constraint(model, E159, SQR(X23) + 2*X23*X29 + SQR(X29) >= 0)
+@constraint(model, E160, SQR(X23) - 2*X23*X41 + SQR(X41) >= 0)
+@constraint(model, E161, SQR(X23) + 2*X23*X41 + SQR(X41) >= 0)
+@constraint(model, E162, SQR(X23) - 2*X23*X43 + SQR(X43) >= 0)
+@constraint(model, E163, SQR(X23) + 2*X23*X43 + SQR(X43) >= 0)
+@constraint(model, E164, SQR(X38) - 2*X38*X41 + SQR(X41) >= 0)
+@constraint(model, E165, SQR(X38) + 2*X38*X41 + SQR(X41) >= 0)
+@constraint(model, E166, SQR(X38) - 2*X38*X46 + SQR(X46) >= 0)
+@constraint(model, E167, SQR(X38) + 2*X38*X46 + SQR(X46) >= 0)
+@constraint(model, E168, SQR(X40) - 2*X40*X43 + SQR(X43) >= 0)
+@constraint(model, E169, SQR(X40) + 2*X40*X43 + SQR(X43) >= 0)
+@constraint(model, E170, objvar == X0)
+@objective(model, Min, objvar)
+optimize!(model)

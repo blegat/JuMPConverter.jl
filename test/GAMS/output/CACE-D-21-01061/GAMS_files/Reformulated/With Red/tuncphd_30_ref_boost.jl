@@ -1,0 +1,136 @@
+using JuMP
+model = Model()
+@variable(model, objvar)
+@variable(model, 0 <= X0 <= 3381217959.000002)
+@variable(model, 0 <= X17 <= 1000000)
+@variable(model, 0 <= X18 <= 1000000)
+@variable(model, 0 <= X19 <= 1000000)
+@variable(model, 0 <= X21 <= 1000000)
+@variable(model, 0 <= X4 <= 100)
+@variable(model, 0 <= X13 <= 10000)
+@variable(model, 0 <= X5 <= 100)
+@variable(model, 0 <= X23 <= 100000000)
+@variable(model, 0 <= X6 <= 100)
+@variable(model, 1.144899557020043e-14 <= X9 <= 10000)
+@variable(model, 0 <= X22 <= 100000000)
+@variable(model, 0 <= X15 <= 10000)
+@variable(model, 0 <= X16 <= 10000)
+@variable(model, -0 <= X1 <= 999999997.9300005)
+@variable(model, 0 <= X20 <= 1000000)
+@variable(model, -1 <= X2 <= 0)
+@variable(model, 0 <= X8 <= 100)
+@variable(model, 0 <= X14 <= 10000)
+@variable(model, 0 <= X11 <= 10000)
+@variable(model, 1.069999793e-07 <= X3 <= 100)
+@variable(model, 0 <= X7 <= 100)
+@variable(model, 0 <= X10 <= 10000)
+@variable(model, 0 <= X12 <= 10000)
+@constraint(
+    model,
+    E1,
+    - X0 +
+    0.0187*X17 +
+    0.0204*X18 +
+    0.0204*X19 +
+    0.0187*X21 +
+    0.029359*X4*X13 +
+    0.068609*X5*X23 +
+    0.0204*X6*X9 +
+    0.0607*X6*X22 +
+    0.0607*X15*X18 +
+    0.0607*X15*X19 +
+    0.0437*X16*X17 +
+    0.0437*X16*X21 == 0
+)
+@constraint(model, E2, - X1 + 0.001*X20*X21 == 2.07)
+@constraint(
+    model,
+    E3,
+    - X2 +
+    0.0009106*X5*X23 +
+    0.00062*X6*X22 +
+    0.00062*X15*X18 +
+    0.00062*X15*X19 +
+    0.00058*X16*X17 +
+    0.00058*X16*X21 == 1
+)
+@constraint(model, E4, - X13 + X4*X5 == 0)
+@constraint(model, E5, - X21 + X6*X13 == 0)
+@constraint(model, E6, - X16 + SQR(X8) == 0)
+@constraint(model, E7, - X14 + X4*X8 == 0)
+@constraint(model, E8, - X5*X14 + X8*X13 == 0)
+@constraint(model, E9, X4*X16 - X8*X14 == 0)
+@constraint(model, E10, - X23 + SQR(X14) == 0)
+@constraint(model, E11, - X11 + X3*X5 == 0)
+@constraint(model, E12, X3*X13 - X4*X11 == 0)
+@constraint(model, E13, - X19 + X6*X11 == 0)
+@constraint(model, E14, X3*X21 - X4*X19 == 0)
+@constraint(model, E15, X11*X21 - X13*X19 == 0)
+@constraint(model, E16, - X15 + SQR(X7) == 0)
+@constraint(model, E17, - X10 + X3*X4 == 0)
+@constraint(model, E18, X4*X11 - X5*X10 == 0)
+@constraint(model, E19, X3*X13 - X5*X10 == 0)
+@constraint(model, E20, X3*X14 - X8*X10 == 0)
+@constraint(model, E21, - X18 + X6*X10 == 0)
+@constraint(model, E22, X4*X19 - X5*X18 == 0)
+@constraint(model, E23, X3*X21 - X5*X18 == 0)
+@constraint(model, E24, X10*X19 - X11*X18 == 0)
+@constraint(model, E25, X10*X21 - X13*X18 == 0)
+@constraint(model, E26, - X17 + X3*X13 == 0)
+@constraint(model, E27, - X3*X17 + X10*X11 == 0)
+@constraint(model, E28, - X4*X17 + X10*X13 == 0)
+@constraint(model, E29, - X5*X17 + X11*X13 == 0)
+@constraint(model, E30, X5*X18 - X6*X17 == 0)
+@constraint(model, E31, X4*X19 - X6*X17 == 0)
+@constraint(model, E32, X3*X21 - X6*X17 == 0)
+@constraint(model, E33, - X8*X17 + X11*X14 == 0)
+@constraint(model, E34, - X12 + X3*X7 == 0)
+@constraint(model, E35, - X4*X12 + X7*X10 == 0)
+@constraint(model, E36, - X5*X12 + X7*X11 == 0)
+@constraint(model, E37, X3*X15 - X7*X12 == 0)
+@constraint(model, E38, X7*X17 - X12*X13 == 0)
+@constraint(model, E39, - X22 + SQR(X12) == 0)
+@constraint(model, E40, - X9 + SQR(X3) == 0)
+@constraint(model, E41, X3*X10 - X4*X9 == 0)
+@constraint(model, E42, X3*X11 - X5*X9 == 0)
+@constraint(model, E43, X3*X12 - X7*X9 == 0)
+@constraint(model, E44, X3*X17 - X9*X13 == 0)
+@constraint(model, E45, X22 - X9*X15 == 0)
+@constraint(model, E46, - X20 + X8*X12 == 0)
+@constraint(model, E47, - X4*X20 + X12*X14 == 0)
+@constraint(model, E48, - X8*X20 + X12*X16 == 0)
+@constraint(model, E49, X8*X22 - X12*X20 == 0)
+@constraint(model, E50, X16*X22 - SQR(X20) == 0)
+@constraint(model, E51, - 2*X3 + SQR(X3) >= -1)
+@constraint(model, E52, 2*X3 + SQR(X3) >= -1)
+@constraint(model, E53, - 2*X7 + SQR(X7) >= -1)
+@constraint(model, E54, 2*X7 + SQR(X7) >= -1)
+@constraint(model, E55, - 2*X8 + SQR(X8) >= -1)
+@constraint(model, E56, 2*X8 + SQR(X8) >= -1)
+@constraint(model, E57, - 2*X12 + SQR(X12) >= -1)
+@constraint(model, E58, 2*X12 + SQR(X12) >= -1)
+@constraint(model, E59, - 2*X14 + SQR(X14) >= -1)
+@constraint(model, E60, 2*X14 + SQR(X14) >= -1)
+@constraint(model, E61, - 2*X20 + SQR(X20) >= -1)
+@constraint(model, E62, 2*X20 + SQR(X20) >= -1)
+@constraint(model, E63, SQR(X3) - 2*X3*X7 + SQR(X7) >= 0)
+@constraint(model, E64, SQR(X3) + 2*X3*X7 + SQR(X7) >= 0)
+@constraint(model, E65, SQR(X3) - 2*X3*X12 + SQR(X12) >= 0)
+@constraint(model, E66, SQR(X3) + 2*X3*X12 + SQR(X12) >= 0)
+@constraint(model, E67, SQR(X3) - 2*X3*X14 + SQR(X14) >= 0)
+@constraint(model, E68, SQR(X3) + 2*X3*X14 + SQR(X14) >= 0)
+@constraint(model, E69, SQR(X7) - 2*X7*X12 + SQR(X12) >= 0)
+@constraint(model, E70, SQR(X7) + 2*X7*X12 + SQR(X12) >= 0)
+@constraint(model, E71, SQR(X8) - 2*X8*X12 + SQR(X12) >= 0)
+@constraint(model, E72, SQR(X8) + 2*X8*X12 + SQR(X12) >= 0)
+@constraint(model, E73, SQR(X8) - 2*X8*X14 + SQR(X14) >= 0)
+@constraint(model, E74, SQR(X8) + 2*X8*X14 + SQR(X14) >= 0)
+@constraint(model, E75, SQR(X8) - 2*X8*X20 + SQR(X20) >= 0)
+@constraint(model, E76, SQR(X8) + 2*X8*X20 + SQR(X20) >= 0)
+@constraint(model, E77, SQR(X12) - 2*X12*X14 + SQR(X14) >= 0)
+@constraint(model, E78, SQR(X12) + 2*X12*X14 + SQR(X14) >= 0)
+@constraint(model, E79, SQR(X12) - 2*X12*X20 + SQR(X20) >= 0)
+@constraint(model, E80, SQR(X12) + 2*X12*X20 + SQR(X20) >= 0)
+@constraint(model, E81, objvar == X0)
+@objective(model, Min, objvar)
+optimize!(model)
