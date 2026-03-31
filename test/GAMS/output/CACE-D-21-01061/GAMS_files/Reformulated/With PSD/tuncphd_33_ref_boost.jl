@@ -129,47 +129,7 @@ model = Model()
 @variable(model, 0 <= X23 <= 1)
 @variable(model, 0 <= X1 <= 1)
 @variable(model, 0 <= X16 <= 1)
-@constraint(
-    model,
-    E1,
-    - X0 +
-    2*X9*X100 +
-    2*X10*X101 +
-    2*X11*X102 +
-    2*X12*X103 +
-    2*X13*X104 +
-    2*X14*X105 +
-    2*X15*X106 +
-    2*X17*X107 +
-    2*X18*X108 +
-    2*X19*X109 +
-    2*X20*X110 +
-    2*X21*X111 +
-    2*X22*X112 +
-    2*X24*X113 +
-    2*X25*X114 +
-    2*X26*X115 +
-    2*X27*X116 +
-    2*X28*X117 +
-    2*X30*X118 +
-    2*X31*X119 +
-    2*X32*X120 +
-    2*X33*X121 +
-    2*X35*X122 +
-    2*X36*X123 +
-    2*X37*X124 +
-    2*X39*X125 +
-    2*X40*X126 +
-    2*X42*X127 - SQR(X44) - SQR(X45) - SQR(X46) - SQR(X47) - SQR(X48) -
-    SQR(X49) - SQR(X50) - SQR(X51) - SQR(X52) - SQR(X53) - SQR(X54) - SQR(X55) -
-    SQR(X56) - SQR(X57) - SQR(X58) - SQR(X59) - SQR(X60) - SQR(X61) - SQR(X62) -
-    SQR(X63) - SQR(X64) - SQR(X65) - SQR(X66) - SQR(X67) - SQR(X68) - SQR(X69) -
-    SQR(X70) - SQR(X71) - SQR(X72) - SQR(X73) - SQR(X74) - SQR(X75) - SQR(X76) -
-    SQR(X77) - SQR(X78) - SQR(X79) - SQR(X80) - SQR(X81) - SQR(X82) - SQR(X83) -
-    SQR(X84) - SQR(X85) - SQR(X86) - SQR(X87) - SQR(X88) - SQR(X89) - SQR(X90) -
-    SQR(X91) - SQR(X92) - SQR(X93) - SQR(X94) - SQR(X95) - SQR(X96) - SQR(X97) -
-    SQR(X98) - SQR(X99) == 0
-)
+@constraint(model, E1, - X0 + 2*X9*X100 + 2*X10*X101 + 2*X11*X102 + 2*X12*X103 + 2*X13*X104 + 2*X14*X105 + 2*X15*X106 + 2*X17*X107 + 2*X18*X108 + 2*X19*X109 + 2*X20*X110 + 2*X21*X111 + 2*X22*X112 + 2*X24*X113 + 2*X25*X114 + 2*X26*X115 + 2*X27*X116 + 2*X28*X117 + 2*X30*X118 + 2*X31*X119 + 2*X32*X120 + 2*X33*X121 + 2*X35*X122 + 2*X36*X123 + 2*X37*X124 + 2*X39*X125 + 2*X40*X126 + 2*X42*X127 - SQR(X44) - SQR(X45) - SQR(X46) - SQR(X47) - SQR(X48) - SQR(X49) - SQR(X50) - SQR(X51) - SQR(X52) - SQR(X53) - SQR(X54) - SQR(X55) - SQR(X56) - SQR(X57) - SQR(X58) - SQR(X59) - SQR(X60) - SQR(X61) - SQR(X62) - SQR(X63) - SQR(X64) - SQR(X65) - SQR(X66) - SQR(X67) - SQR(X68) - SQR(X69) - SQR(X70) - SQR(X71) - SQR(X72) - SQR(X73) - SQR(X74) - SQR(X75) - SQR(X76) - SQR(X77) - SQR(X78) - SQR(X79) - SQR(X80) - SQR(X81) - SQR(X82) - SQR(X83) - SQR(X84) - SQR(X85) - SQR(X86) - SQR(X87) - SQR(X88) - SQR(X89) - SQR(X90) - SQR(X91) - SQR(X92) - SQR(X93) - SQR(X94) - SQR(X95) - SQR(X96) - SQR(X97) - SQR(X98) - SQR(X99) == 0)
 @constraint(model, E2, - X43 + SQR(X8) == 0)
 @constraint(model, E3, - X99 + X7*X43 == 0)
 @constraint(model, E4, - X42 + X7*X8 == 0)

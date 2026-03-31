@@ -18,11 +18,7 @@ model = Model()
 @variable(model, -300 <= X5 <= 0)
 @variable(model, 0 <= X6 <= 0)
 @constraint(model, E1, - X2 + X9 - X11 + X13 == -0)
-@constraint(
-    model,
-    E2,
-    - X0 + 6*X7 + 16*X8 - 9*X11 + 10*X13 + 10*X14 - 15*X15 == -0
-)
+@constraint(model, E2, - X0 + 6*X7 + 16*X8 - 9*X11 + 10*X13 + 10*X14 - 15*X15 == -0)
 @constraint(model, E3, - X1 + X7 + X8 - X9 - X10 == -0)
 @constraint(model, E4, - X3 + X10 + X14 - X15 == -0)
 @constraint(model, E5, - X4 - 2.5*X11 + 2*X13 + X9*X12 == 0)

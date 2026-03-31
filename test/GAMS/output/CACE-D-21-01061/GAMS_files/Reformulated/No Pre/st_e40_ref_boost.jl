@@ -28,32 +28,10 @@ model = Model()
 @constraint(model, E3, - X3 - X12 + 0.634*Y9 + 2.828*Y11 == -0)
 @constraint(model, E4, - X4 - X12 + 0.5*Y9 - 2*Y10 == -0)
 @constraint(model, E5, - X5 - X12 - 0.5*Y9 + 2*Y10 == -0)
-@constraint(
-    model,
-    E6,
-    - X1 + X12 - 0.15*Y9*Y10 - 0.1319*Y9*Y11 - 0.141421*Y10*Y11 == 0
-)
-@constraint(
-    model,
-    E7,
-    - X6 + 67440*Y9 - 58316*X29 + 24556*X32 - 41*X35 - 5507*Y9*X32 +
-    Y9*X35 +
-    667*X29*X32 == 28800
-)
-@constraint(
-    model,
-    E8,
-    - X7 + 67440*Y10 - 58316*X30 + 24556*X33 - 41*X36 - 5507*Y10*X33 +
-    Y10*X36 +
-    667*X30*X33 == 28800
-)
-@constraint(
-    model,
-    E9,
-    - X8 + 67440*Y11 - 58316*X31 + 24556*X34 - 41*X37 - 5507*Y11*X34 +
-    Y11*X37 +
-    667*X31*X34 == 28800
-)
+@constraint(model, E6, - X1 + X12 - 0.15*Y9*Y10 - 0.1319*Y9*Y11 - 0.141421*Y10*Y11 == 0)
+@constraint(model, E7, - X6 + 67440*Y9 - 58316*X29 + 24556*X32 - 41*X35 - 5507*Y9*X32 + Y9*X35 + 667*X29*X32 == 28800)
+@constraint(model, E8, - X7 + 67440*Y10 - 58316*X30 + 24556*X33 - 41*X36 - 5507*Y10*X33 + Y10*X36 + 667*X30*X33 == 28800)
+@constraint(model, E9, - X8 + 67440*Y11 - 58316*X31 + 24556*X34 - 41*X37 - 5507*Y11*X34 + Y11*X37 + 667*X31*X34 == 28800)
 @constraint(model, E10, - X29 + SQR(Y9) == 0)
 @constraint(model, E11, - X32 + Y9*X29 == 0)
 @constraint(model, E12, - X35 + SQR(X32) == 0)

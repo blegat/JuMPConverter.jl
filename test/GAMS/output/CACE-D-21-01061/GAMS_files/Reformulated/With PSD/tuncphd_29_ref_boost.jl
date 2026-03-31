@@ -34,31 +34,11 @@ model = Model()
 @constraint(model, E3, - X3 + 1.11111*X22 + 0.222*X23 == 35.82)
 @constraint(model, E4, - X4 - 3*X20 + 1.0101*X23 == -133)
 @constraint(model, E5, - X9 - X14 + 1.22*X17 - X18 == -0)
-@constraint(
-    model,
-    E6,
-    - X0 + 5.04*X14 + 0.035*X15 + 10*X16 + 3.36*X18 - 0.063*X17*X20 == 0
-)
-@constraint(
-    model,
-    E7,
-    - X5 + 1.12*X14 - 0.99*X17 + 0.13167*X14*X21 - 0.00667*X14*X43 == 0
-)
-@constraint(
-    model,
-    E8,
-    - X6 + 0.325*X19 - 0.99*X20 + 1.098*X21 - 0.038*X43 == -57.425
-)
-@constraint(
-    model,
-    E9,
-    - X7 - 1.12*X14 + 1.0101*X17 - 0.13167*X14*X21 + 0.00667*X14*X43 == 0
-)
-@constraint(
-    model,
-    E10,
-    - X8 - 0.325*X19 + 1.0101*X20 - 1.098*X21 + 0.038*X43 == 57.425
-)
+@constraint(model, E6, - X0 + 5.04*X14 + 0.035*X15 + 10*X16 + 3.36*X18 - 0.063*X17*X20 == 0)
+@constraint(model, E7, - X5 + 1.12*X14 - 0.99*X17 + 0.13167*X14*X21 - 0.00667*X14*X43 == 0)
+@constraint(model, E8, - X6 + 0.325*X19 - 0.99*X20 + 1.098*X21 - 0.038*X43 == -57.425)
+@constraint(model, E9, - X7 - 1.12*X14 + 1.0101*X17 - 0.13167*X14*X21 + 0.00667*X14*X43 == 0)
+@constraint(model, E10, - X8 - 0.325*X19 + 1.0101*X20 - 1.098*X21 + 0.038*X43 == 57.425)
 @constraint(model, E11, - X10 - X19 + 98000*X16*X24 == 0)
 @constraint(model, E12, - X11 - X21 + X15*X25 + X18*X25 == 0)
 @constraint(model, E13, - X12 + 1000*X16*X24 + X24*X42 == 1)

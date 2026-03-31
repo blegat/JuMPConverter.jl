@@ -41,61 +41,14 @@ model = Model()
 @variable(model, Y18, Bin)
 @variable(model, Y13, Bin)
 @variable(model, Y19, Bin)
-@constraint(
-    model,
-    E1,
-    - X0 +
-    12*Y10*X36 +
-    3*X24*X31 +
-    5*X27*X38 +
-    8*X28*X29 +
-    X28*X35 +
-    X30*X33 +
-    3*X33*X37 +
-    7*X34*X36 +
-    10*X38*X39 == 0
-)
-@constraint(
-    model,
-    E2,
-    - X1 + Y10*X36 + 2*Y20*X38 - 7*X24*X31 - 8*X28*X35 - 12*X34*X36 +
-    3*X38*X39 == -2
-)
-@constraint(
-    model,
-    E3,
-    - X2 + X27*X38 - 5*X28*X29 - 10*X28*X35 + 7*X30*X33 + X33*X37 + X34*X36 ==
-    -1
-)
-@constraint(
-    model,
-    E4,
-    - X3 + Y20*X38 - 2*X27*X38 - X28*X35 - 3*X34*X36 + 5*X38*X39 == -1
-)
-@constraint(
-    model,
-    E5,
-    - X4 - Y20*X38 + 2*X27*X38 + X28*X35 + 3*X34*X36 - 5*X38*X39 == 1
-)
-@constraint(
-    model,
-    E6,
-    - X5 - 2*Y10*X36 - 2*X24*X31 - 9*X27*X38 - 4*X28*X35 + X30*X33 -
-    5*X33*X37 == -3
-)
-@constraint(
-    model,
-    E7,
-    - X6 - 12*Y10*X36 + 3*Y20*X38 - 15*X24*X31 + 2*X27*X38 - 7*X28*X29 +
-    6*X33*X37 +
-    9*X34*X36 == -7
-)
-@constraint(
-    model,
-    E8,
-    - X7 - 7*Y10*X36 - 10*X24*X31 - X28*X29 + 2*X28*X35 - 5*X30*X33 +
-    5*X34*X36 - 8*X38*X39 == -1
-)
+@constraint(model, E1, - X0 + 12*Y10*X36 + 3*X24*X31 + 5*X27*X38 + 8*X28*X29 + X28*X35 + X30*X33 + 3*X33*X37 + 7*X34*X36 + 10*X38*X39 == 0)
+@constraint(model, E2, - X1 + Y10*X36 + 2*Y20*X38 - 7*X24*X31 - 8*X28*X35 - 12*X34*X36 + 3*X38*X39 == -2)
+@constraint(model, E3, - X2 + X27*X38 - 5*X28*X29 - 10*X28*X35 + 7*X30*X33 + X33*X37 + X34*X36 == -1)
+@constraint(model, E4, - X3 + Y20*X38 - 2*X27*X38 - X28*X35 - 3*X34*X36 + 5*X38*X39 == -1)
+@constraint(model, E5, - X4 - Y20*X38 + 2*X27*X38 + X28*X35 + 3*X34*X36 - 5*X38*X39 == 1)
+@constraint(model, E6, - X5 - 2*Y10*X36 - 2*X24*X31 - 9*X27*X38 - 4*X28*X35 + X30*X33 - 5*X33*X37 == -3)
+@constraint(model, E7, - X6 - 12*Y10*X36 + 3*Y20*X38 - 15*X24*X31 + 2*X27*X38 - 7*X28*X29 + 6*X33*X37 + 9*X34*X36 == -7)
+@constraint(model, E8, - X7 - 7*Y10*X36 - 10*X24*X31 - X28*X29 + 2*X28*X35 - 5*X30*X33 + 5*X34*X36 - 8*X38*X39 == -1)
 @constraint(model, E9, - X26 + Y12*Y14 == 0)
 @constraint(model, E10, - X30 + Y16*Y17 == 0)
 @constraint(model, E11, - X39 + X26*X30 == 0)

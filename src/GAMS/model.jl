@@ -145,8 +145,10 @@ function parse_solve(model::JuMPConverter.Model, s::AbstractString)
     sense_str = lowercase(m.captures[1])
     if startswith(sense_str, "max")
         sense = MOI.MAX_SENSE
-    else
+    elseif startswith(sense_str, "min")
         sense = MOI.MIN_SENSE
+    else
+        error("Unsupported sense: $sense_str")
     end
     expression = String(m.captures[2])
     model.objective = JuMPConverter.Objective(; sense, expression)

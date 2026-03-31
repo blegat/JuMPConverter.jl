@@ -20,16 +20,8 @@ model = Model()
 @constraint(model, c4, -(-133+3*x7-0.99*x10)+0.020101*x10 >= 0)
 @constraint(model, c5, 1.12*x1+0.13167*x1*x8-0.00667*x1*x8*x8 - 0.99*x4 >= 0)
 @constraint(model, c6, 57.425 + 1.098*x8-0.038*x8*x8+0.325*x6-0.99*x7 >= 0)
-@constraint(
-    model,
-    c7,
-    -(1.12*x1+0.13167*x1*x8-0.00667*x1*x8*x8 - 0.99*x4)+0.020101*x4 >= 0
-)
-@constraint(
-    model,
-    c8,
-    -(57.425 + 1.098*x8-0.038*x8*x8+0.325*x6-0.99*x7)+0.020101*x7 >= 0
-)
+@constraint(model, c7, -(1.12*x1+0.13167*x1*x8-0.00667*x1*x8*x8 - 0.99*x4)+0.020101*x4 >= 0)
+@constraint(model, c8, -(57.425 + 1.098*x8-0.038*x8*x8+.325*x6-0.99*x7)+0.020101*x7 >= 0)
 @constraint(model, c9, 1.22*x4-x1-x5 == 0)
 @constraint(model, c10, 98000*x3*x11 - x6 == 0)
 @constraint(model, c11, (x2+x5)*x12-x8 == 0)

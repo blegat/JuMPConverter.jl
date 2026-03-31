@@ -8,11 +8,7 @@ model = Model()
 @variable(model, 0.9999999861586084 <= X8 <= 1.000000013841392)
 @variable(model, 0 <= X1 <= 0)
 @constraint(model, E1, - X2 + 3*X3 + 4*X4 == 25)
-@constraint(
-    model,
-    E2,
-    - X0 - 2*X3 + X8 + 10*SQR(X4) - 20*X4*X8 + 10*SQR(X8) == -1
-)
+@constraint(model, E2, - X0 - 2*X3 + X8 + 10*SQR(X4) - 20*X4*X8 + 10*SQR(X8) == -1)
 @constraint(model, E3, - X1 + X3 - X3*X4 == 0)
 @constraint(model, E4, - X8 + SQR(X3) == 0)
 @constraint(model, E5, objvar == X0)

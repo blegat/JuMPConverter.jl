@@ -324,11 +324,7 @@ model = Model()
 @constraint(model, E44, - X67 - X242 + X254 - 5929*Y196 == -5929)
 @constraint(model, E45, - X95 - X249 + X255 - 6400*Y203 == -0)
 @constraint(model, E46, - X74 - X249 + X255 - 4382.44*Y203 == -4382.44)
-@constraint(
-    model,
-    E47,
-    - X0 + 2.28*X222 + 2.28*X225 + 1.68*X229 + 1.68*X231 + 2.28*X234 == -0
-)
+@constraint(model, E47, - X0 + 2.28*X222 + 2.28*X225 + 1.68*X229 + 1.68*X231 + 2.28*X234 == -0)
 @constraint(model, E48, - X1 - X166 + X167 - X216 == -0)
 @constraint(model, E49, - X2 - X155 + X156 - X217 == -0)
 @constraint(model, E50, - X3 - X172 + X173 - X218 == -0)
@@ -418,11 +414,7 @@ model = Model()
 @constraint(model, E134, - X28 - 0.224906*X243 + 0.224906*X255 + X181*X552 == 0)
 @constraint(model, E135, - X29 + 0.653874*X249 - 0.653874*X255 + X182*X553 == 0)
 @constraint(model, E136, - X30 - 1.79815*X239 + 1.79815*X244 + X183*X554 == 0)
-@constraint(
-    model,
-    E137,
-    - X31 - 0.0265963*X239 + 0.0265963*X244 + X184*X555 == 0
-)
+@constraint(model, E137, - X31 - 0.0265963*X239 + 0.0265963*X244 + X184*X555 == 0)
 @constraint(model, E138, - X32 - 1.43852*X244 + 1.43852*X253 + X185*X556 == 0)
 @constraint(model, E139, - X33 - 0.021277*X244 + 0.021277*X253 + X186*X557 == 0)
 @constraint(model, E140, - X34 + 0.856263*X247 - 0.856263*X253 + X187*X558 == 0)
@@ -430,28 +422,12 @@ model = Model()
 @constraint(model, E142, - X36 - 7.19261*X236 + 7.19261*X249 + X189*X560 == 0)
 @constraint(model, E143, - X37 + 3.59631*X246 - 3.59631*X249 + X190*X561 == 0)
 @constraint(model, E144, - X38 + 1.43852*X240 - 1.43852*X246 + X191*X562 == 0)
-@constraint(
-    model,
-    E145,
-    - X39 + 0.0509935*X252 - 0.0509935*X253 + X192*X563 == 0
-)
-@constraint(
-    model,
-    E146,
-    - X40 + 0.00168827*X238 - 0.00168827*X250 + X193*X564 == 0
-)
-@constraint(
-    model,
-    E147,
-    - X41 - 0.0275751*X238 + 0.0275751*X248 + X194*X565 == 0
-)
+@constraint(model, E145, - X39 + 0.0509935*X252 - 0.0509935*X253 + X192*X563 == 0)
+@constraint(model, E146, - X40 + 0.00168827*X238 - 0.00168827*X250 + X193*X564 == 0)
+@constraint(model, E147, - X41 - 0.0275751*X238 + 0.0275751*X248 + X194*X565 == 0)
 @constraint(model, E148, - X42 + 7.19261*X239 - 7.19261*X251 - SQR(X159) == 0)
 @constraint(model, E149, - X43 + 0.106385*X239 - 0.106385*X251 - SQR(X160) == 0)
-@constraint(
-    model,
-    E150,
-    - X44 + 0.00636349*X250 - 0.00636349*X252 - SQR(X171) == 0
-)
+@constraint(model, E150, - X44 + 0.00636349*X250 - 0.00636349*X252 - SQR(X171) == 0)
 @constraint(model, E151, - X545 + SQR(X150) == 0)
 @constraint(model, E152, - X546 + SQR(X151) == 0)
 @constraint(model, E153, - X547 + SQR(X152) == 0)

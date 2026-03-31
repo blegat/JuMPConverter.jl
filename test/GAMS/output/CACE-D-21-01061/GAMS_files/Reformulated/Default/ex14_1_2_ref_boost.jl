@@ -18,66 +18,14 @@ model = Model()
 @variable(model, X8 <= 0)
 @variable(model, X9 <= 0)
 @constraint(model, E1, - X1 + X10 - 3*X14 + X10*X11 == 0)
-@constraint(
-    model,
-    E2,
-    - X2 + X10 + 4.4975e-07*X11 - 10*X14 - X0 +
-    2*X10*X11 +
-    2.8845e-06*SQR(X11) +
-    0.000545177*X11*X12 +
-    3.40735e-05*X11*X13 +
-    X11*X15 == 0
-)
-@constraint(
-    model,
-    E3,
-    - X3 - X10 - 4.4975e-07*X11 + 10*X14 - X0 - 2*X10*X11 -
-    2.8845e-06*SQR(X11) - 0.000545177*X11*X12 - 3.40735e-05*X11*X13 - X11*X15 ==
-    0
-)
-@constraint(
-    model,
-    E4,
-    - X4 + 0.000410622*X12 - 8*X14 - X0 +
-    0.386*X15 +
-    0.000545177*X11*X12 +
-    2*X11*X15 == 0
-)
-@constraint(
-    model,
-    E5,
-    - X5 - 0.000410622*X12 + 8*X14 - X0 - 0.386*X15 - 0.000545177*X11*X12 -
-    2*X11*X15 == 0
-)
-@constraint(
-    model,
-    E6,
-    - X6 - 40*X14 - X0 + 3.40735e-05*X11*X13 + 2*SQR(X13) == 0
-)
-@constraint(
-    model,
-    E7,
-    - X7 + 40*X14 - X0 - 3.40735e-05*X11*X13 - 2*SQR(X13) == 0
-)
-@constraint(
-    model,
-    E8,
-    - X8 + X10 + 4.4975e-07*X11 + 0.000410622*X12 - X0 +
-    0.193*X15 +
-    X10*X11 +
-    9.615e-07*SQR(X11) +
-    0.000545177*X11*X12 +
-    3.40735e-05*X11*X13 +
-    X11*X15 +
-    SQR(X13) == 1
-)
-@constraint(
-    model,
-    E9,
-    - X9 - X10 - 4.4975e-07*X11 - 0.000410622*X12 - X0 - 0.193*X15 - X10*X11 -
-    9.615e-07*SQR(X11) - 0.000545177*X11*X12 - 3.40735e-05*X11*X13 - X11*X15 -
-    SQR(X13) == -1
-)
+@constraint(model, E2, - X2 + X10 + 4.4975e-07*X11 - 10*X14 - X0 + 2*X10*X11 + 2.8845e-06*SQR(X11) + 0.000545177*X11*X12 + 3.40735e-05*X11*X13 + X11*X15 == 0)
+@constraint(model, E3, - X3 - X10 - 4.4975e-07*X11 + 10*X14 - X0 - 2*X10*X11 - 2.8845e-06*SQR(X11) - 0.000545177*X11*X12 - 3.40735e-05*X11*X13 - X11*X15 == 0)
+@constraint(model, E4, - X4 + 0.000410622*X12 - 8*X14 - X0 + 0.386*X15 + 0.000545177*X11*X12 + 2*X11*X15 == 0)
+@constraint(model, E5, - X5 - 0.000410622*X12 + 8*X14 - X0 - 0.386*X15 - 0.000545177*X11*X12 - 2*X11*X15 == 0)
+@constraint(model, E6, - X6 - 40*X14 - X0 + 3.40735e-05*X11*X13 + 2*SQR(X13) == 0)
+@constraint(model, E7, - X7 + 40*X14 - X0 - 3.40735e-05*X11*X13 - 2*SQR(X13) == 0)
+@constraint(model, E8, - X8 + X10 + 4.4975e-07*X11 + 0.000410622*X12 - X0 + 0.193*X15 + X10*X11 + 9.615e-07*SQR(X11) + 0.000545177*X11*X12 + 3.40735e-05*X11*X13 + X11*X15 + SQR(X13) == 1)
+@constraint(model, E9, - X9 - X10 - 4.4975e-07*X11 - 0.000410622*X12 - X0 - 0.193*X15 - X10*X11 - 9.615e-07*SQR(X11) - 0.000545177*X11*X12 - 3.40735e-05*X11*X13 - X11*X15 - SQR(X13) == -1)
 @constraint(model, E10, - X15 + SQR(X12) == 0)
 @constraint(model, E11, objvar == X0)
 @objective(model, Min, objvar)

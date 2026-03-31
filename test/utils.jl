@@ -9,7 +9,6 @@ end
 function test_files(a, b)
     process = run(Cmd(`diff --color=always $a $b`, ignorestatus = true))
     @test process.exitcode == 0
-    #@test content(a) == content(b)
 end
 
 name(f) = split(f, ".")[1]
@@ -23,6 +22,7 @@ function test_io(reader, input_dir, output_dir)
             return println(io, model)
         end
         JuliaFormatter.format_file(tmp)
+        JuliaFormatter.format_file(tmp)
         test_files(tmp, joinpath(output_dir, base_name * ".jl"))
     end
 end
@@ -31,4 +31,45 @@ function test_io(reader, root_dir)
     input_dir = joinpath(root_dir, "input")
     output_dir = joinpath(root_dir, "output")
     return test_io(reader, input_dir, output_dir)
+end
+
+"""
+    test_output(reader, root_dir)
+
+Regenerate output into a temp directory and diff against committed output.
+Recursively walks `root_dir/input` for input files.
+Output is not formatted — it is the raw JuMPConverter output.
+"""
+function test_output(reader, root_dir)
+    input_dir = joinpath(root_dir, "input")
+    output_dir = joinpath(root_dir, "output")
+    mktempdir() do tmpdir
+        _generate_and_test(reader, input_dir, output_dir, tmpdir)
+    end
+end
+
+function _generate_and_test(reader, input_dir, output_dir, tmpdir)
+    for entry in sort(readdir(input_dir))
+        input_path = joinpath(input_dir, entry)
+        if isdir(input_path)
+            _generate_and_test(
+                reader,
+                input_path,
+                joinpath(output_dir, entry),
+                joinpath(tmpdir, entry),
+            )
+        elseif endswith(entry, ".gms")
+            mkpath(tmpdir)
+            base_name = name(entry)
+            tmp_path = joinpath(tmpdir, base_name * ".jl")
+            expected_path = joinpath(output_dir, base_name * ".jl")
+            model = reader(input_path)
+            open(tmp_path, "w") do io
+                println(io, model)
+            end
+            @testset "$base_name" begin
+                test_files(tmp_path, expected_path)
+            end
+        end
+    end
 end

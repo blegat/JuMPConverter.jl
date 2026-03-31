@@ -193,21 +193,7 @@ model = Model()
 @variable(model, Y118, Bin)
 @variable(model, Y119, Bin)
 @variable(model, Y120, Bin)
-@constraint(
-    model,
-    E1,
-    - X100 +
-    X121 +
-    X122 +
-    X123 +
-    X124 +
-    X125 +
-    X126 +
-    X127 +
-    X128 +
-    X129 +
-    X130 == 2
-)
+@constraint(model, E1, - X100 + X121 + X122 + X123 + X124 + X125 + X126 + X127 + X128 + X129 + X130 == 2)
 @constraint(model, E2, - X71 - X121 - X141 + X142 == -0)
 @constraint(model, E3, - X72 - X122 - X142 + X143 == -0)
 @constraint(model, E4, - X73 - X123 - X143 + X144 == -0)
@@ -287,22 +273,7 @@ model = Model()
 @constraint(model, E78, - X40 - X170 + 2*Y120 == 2)
 @constraint(model, E79, - X51 + 2*Y111 == 2)
 @constraint(model, E80, - X61 + 2*Y111 == -0)
-@constraint(
-    model,
-    E81,
-    - X0 - 3.33333*X181 +
-    X121*X279 +
-    X122*X280 +
-    X123*X281 +
-    X124*X282 +
-    X125*X283 +
-    X126*X284 +
-    X127*X285 +
-    X128*X286 +
-    X129*X287 +
-    X130*X288 +
-    SQR(X181) == -2.77778
-)
+@constraint(model, E81, - X0 - 3.33333*X181 + X121*X279 + X122*X280 + X123*X281 + X124*X282 + X125*X283 + X126*X284 + X127*X285 + X128*X286 + X129*X287 + X130*X288 + SQR(X181) == -2.77778)
 @constraint(model, E82, - X11 - X131 + X161 - X121*X171 == 0)
 @constraint(model, E83, - X12 - X132 + X162 - X122*X172 == 0)
 @constraint(model, E84, - X13 - X133 + X163 - X123*X173 == 0)

@@ -56,33 +56,7 @@ model = Model()
 @variable(model, 47.61 <= X53 <= 62.41000000000001)
 @variable(model, -3.138788152942072 <= X54 <= 3.048650791150286)
 @variable(model, -0.3973149560686167 <= X34 <= 0.3859051634367451)
-@constraint(
-    model,
-    E1,
-    - X0 - 11.8*X12 - 1.8*X13 - 10.8*X14 - 3.6*X15 - 8.8*X16 - 5.2*X17 -
-    9.2*X18 - 6.6*X19 - 7*X20 - 8.8*X21 - 7.4*X22 - 10.4*X23 - 5.6*X24 -
-    12.2*X25 - 5.6*X26 - 13*X27 - 4.8*X28 - 14.8*X29 - 3*X30 +
-    SQR(X11) +
-    SQR(X12) +
-    SQR(X13) +
-    SQR(X14) +
-    SQR(X15) +
-    SQR(X16) +
-    SQR(X17) +
-    SQR(X18) +
-    SQR(X19) +
-    SQR(X20) +
-    SQR(X21) +
-    SQR(X22) +
-    SQR(X23) +
-    SQR(X24) +
-    SQR(X25) +
-    SQR(X26) +
-    SQR(X27) +
-    SQR(X28) +
-    SQR(X29) +
-    SQR(X30) == -356.44
-)
+@constraint(model, E1, - X0 - 11.8*X12 - 1.8*X13 - 10.8*X14 - 3.6*X15 - 8.8*X16 - 5.2*X17 - 9.2*X18 - 6.6*X19 - 7*X20 - 8.8*X21 - 7.4*X22 - 10.4*X23 - 5.6*X24 - 12.2*X25 - 5.6*X26 - 13*X27 - 4.8*X28 - 14.8*X29 - 3*X30 + SQR(X11) + SQR(X12) + SQR(X13) + SQR(X14) + SQR(X15) + SQR(X16) + SQR(X17) + SQR(X18) + SQR(X19) + SQR(X20) + SQR(X21) + SQR(X22) + SQR(X23) + SQR(X24) + SQR(X25) + SQR(X26) + SQR(X27) + SQR(X28) + SQR(X29) + SQR(X30) == -356.44)
 @constraint(model, E2, - X1 - X12 + X31 + X11*X32 + X33*X35 + X35*X36 == 0)
 @constraint(model, E3, - X2 - X14 + X31 + X13*X32 + X33*X37 + X37*X38 == 0)
 @constraint(model, E4, - X3 - X16 + X31 + X15*X32 + X33*X39 + X39*X40 == 0)

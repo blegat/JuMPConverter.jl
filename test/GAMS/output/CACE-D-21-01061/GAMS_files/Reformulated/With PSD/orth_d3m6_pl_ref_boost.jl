@@ -264,96 +264,12 @@ model = Model()
 @constraint(model, E73, - X13 + X145 - X133*X135 == 0)
 @constraint(model, E74, - X14 + X146 - X133*X137 == 0)
 @constraint(model, E75, - X15 + X147 - X135*X137 == 0)
-@constraint(
-    model,
-    E76,
-    - X36 +
-    X138*X194 +
-    X139*X196 +
-    X140*X197 +
-    X141*X198 +
-    X142*X199 +
-    X143*X200 +
-    X144*X201 +
-    X145*X202 +
-    X146*X203 +
-    X147*X204 == 1
-)
-@constraint(
-    model,
-    E77,
-    - X37 +
-    X130*X194 +
-    X132*X196 +
-    X134*X197 +
-    X136*X198 +
-    X142*X205 +
-    X143*X206 +
-    X144*X207 +
-    X145*X208 +
-    X146*X209 +
-    X147*X210 == 1
-)
-@constraint(
-    model,
-    E78,
-    - X38 +
-    X127*X194 +
-    X132*X199 +
-    X134*X200 +
-    X136*X201 +
-    X139*X205 +
-    X140*X206 +
-    X141*X207 +
-    X145*X211 +
-    X146*X212 +
-    X147*X213 == 1
-)
-@constraint(
-    model,
-    E79,
-    - X39 +
-    X127*X196 +
-    X130*X199 +
-    X134*X202 +
-    X136*X203 +
-    X138*X205 +
-    X140*X208 +
-    X141*X209 +
-    X143*X211 +
-    X144*X212 +
-    X147*X195 == 1
-)
-@constraint(
-    model,
-    E80,
-    - X40 +
-    X127*X197 +
-    X130*X200 +
-    X132*X202 +
-    X136*X204 +
-    X138*X206 +
-    X139*X208 +
-    X141*X210 +
-    X142*X211 +
-    X144*X213 +
-    X146*X195 == 1
-)
-@constraint(
-    model,
-    E81,
-    - X41 +
-    X127*X198 +
-    X130*X201 +
-    X132*X203 +
-    X134*X204 +
-    X138*X207 +
-    X139*X209 +
-    X140*X210 +
-    X142*X212 +
-    X143*X213 +
-    X145*X195 == 1
-)
+@constraint(model, E76, - X36 + X138*X194 + X139*X196 + X140*X197 + X141*X198 + X142*X199 + X143*X200 + X144*X201 + X145*X202 + X146*X203 + X147*X204 == 1)
+@constraint(model, E77, - X37 + X130*X194 + X132*X196 + X134*X197 + X136*X198 + X142*X205 + X143*X206 + X144*X207 + X145*X208 + X146*X209 + X147*X210 == 1)
+@constraint(model, E78, - X38 + X127*X194 + X132*X199 + X134*X200 + X136*X201 + X139*X205 + X140*X206 + X141*X207 + X145*X211 + X146*X212 + X147*X213 == 1)
+@constraint(model, E79, - X39 + X127*X196 + X130*X199 + X134*X202 + X136*X203 + X138*X205 + X140*X208 + X141*X209 + X143*X211 + X144*X212 + X147*X195 == 1)
+@constraint(model, E80, - X40 + X127*X197 + X130*X200 + X132*X202 + X136*X204 + X138*X206 + X139*X208 + X141*X210 + X142*X211 + X144*X213 + X146*X195 == 1)
+@constraint(model, E81, - X41 + X127*X198 + X130*X201 + X132*X203 + X134*X204 + X138*X207 + X139*X209 + X140*X210 + X142*X212 + X143*X213 + X145*X195 == 1)
 @constraint(model, E82, - X42 + X148*X156 - X150*X154 + X151*X153 == 0)
 @constraint(model, E83, - X43 + X148*X162 - X150*X160 + X151*X159 == 0)
 @constraint(model, E84, - X44 + X148*X157 - X150*X155 + X152*X153 == 0)
@@ -384,81 +300,21 @@ model = Model()
 @constraint(model, E109, - X69 + X149*X159 - X162*X166 + X163*X165 == 0)
 @constraint(model, E110, - X70 + X149*X160 - X162*X167 + X164*X165 == 0)
 @constraint(model, E111, - X71 + X149*X161 - X163*X167 + X164*X166 == 0)
-@constraint(
-    model,
-    E112,
-    - X72 + X148*X149 - X150*X167 + X151*X166 - X152*X165 == 0
-)
-@constraint(
-    model,
-    E113,
-    - X73 + X148*X149 - X150*X167 + X153*X164 - X158*X159 == 0
-)
-@constraint(
-    model,
-    E114,
-    - X74 + X148*X149 + X151*X166 - X154*X163 + X157*X160 == 0
-)
-@constraint(
-    model,
-    E115,
-    - X75 + X148*X149 - X152*X165 + X155*X162 - X156*X161 == 0
-)
-@constraint(
-    model,
-    E116,
-    - X76 + X148*X149 + X153*X164 - X154*X163 + X155*X162 == 0
-)
-@constraint(
-    model,
-    E117,
-    - X77 + X148*X149 - X156*X161 + X157*X160 - X158*X159 == 0
-)
-@constraint(
-    model,
-    E118,
-    - X78 + X150*X167 - X151*X166 + X155*X162 - X156*X161 == 0
-)
-@constraint(
-    model,
-    E119,
-    - X79 + X150*X167 + X152*X165 - X154*X163 + X157*X160 == 0
-)
-@constraint(
-    model,
-    E120,
-    - X80 + X150*X167 - X153*X164 - X156*X161 + X157*X160 == 0
-)
-@constraint(
-    model,
-    E121,
-    - X81 + X150*X167 - X154*X163 + X155*X162 + X158*X159 == 0
-)
-@constraint(
-    model,
-    E122,
-    - X82 + X151*X166 - X152*X165 - X153*X164 + X158*X159 == 0
-)
-@constraint(
-    model,
-    E123,
-    - X83 + X151*X166 - X153*X164 - X155*X162 + X157*X160 == 0
-)
-@constraint(
-    model,
-    E124,
-    - X84 + X151*X166 - X154*X163 + X156*X161 + X158*X159 == 0
-)
-@constraint(
-    model,
-    E125,
-    - X85 + X152*X165 + X153*X164 - X154*X163 + X156*X161 == 0
-)
-@constraint(
-    model,
-    E126,
-    - X86 + X152*X165 - X155*X162 + X157*X160 - X158*X159 == 0
-)
+@constraint(model, E112, - X72 + X148*X149 - X150*X167 + X151*X166 - X152*X165 == 0)
+@constraint(model, E113, - X73 + X148*X149 - X150*X167 + X153*X164 - X158*X159 == 0)
+@constraint(model, E114, - X74 + X148*X149 + X151*X166 - X154*X163 + X157*X160 == 0)
+@constraint(model, E115, - X75 + X148*X149 - X152*X165 + X155*X162 - X156*X161 == 0)
+@constraint(model, E116, - X76 + X148*X149 + X153*X164 - X154*X163 + X155*X162 == 0)
+@constraint(model, E117, - X77 + X148*X149 - X156*X161 + X157*X160 - X158*X159 == 0)
+@constraint(model, E118, - X78 + X150*X167 - X151*X166 + X155*X162 - X156*X161 == 0)
+@constraint(model, E119, - X79 + X150*X167 + X152*X165 - X154*X163 + X157*X160 == 0)
+@constraint(model, E120, - X80 + X150*X167 - X153*X164 - X156*X161 + X157*X160 == 0)
+@constraint(model, E121, - X81 + X150*X167 - X154*X163 + X155*X162 + X158*X159 == 0)
+@constraint(model, E122, - X82 + X151*X166 - X152*X165 - X153*X164 + X158*X159 == 0)
+@constraint(model, E123, - X83 + X151*X166 - X153*X164 - X155*X162 + X157*X160 == 0)
+@constraint(model, E124, - X84 + X151*X166 - X154*X163 + X156*X161 + X158*X159 == 0)
+@constraint(model, E125, - X85 + X152*X165 + X153*X164 - X154*X163 + X156*X161 == 0)
+@constraint(model, E126, - X86 + X152*X165 - X155*X162 + X157*X160 - X158*X159 == 0)
 @constraint(model, E127, - X204 + SQR(X158) == 0)
 @constraint(model, E128, - X203 + SQR(X157) == 0)
 @constraint(model, E129, - X202 + SQR(X156) == 0)

@@ -14,12 +14,7 @@ model = Model()
 @variable(model, 10 <= Y5 <= 10, Int)
 @constraint(model, E1, - X1 + 0.0193*X6 - 0.0625*Y4 == -0)
 @constraint(model, E2, - X2 + 0.00954*X6 - 0.0625*Y5 == -0)
-@constraint(
-    model,
-    E3,
-    - X0 + 0.0775*Y4*X13 + 0.111131*Y5*X14 + 0.012348*X7*X12 + 0.0389*X7*X13 ==
-    0
-)
+@constraint(model, E3, - X0 + 0.0775*Y4*X13 + 0.111131*Y5*X14 + 0.012348*X7*X12 + 0.0389*X7*X13 == 0)
 @constraint(model, E4, - X3 + 4.18879*X6*X14 + 3.14159*X7*X14 == 1.296e+06)
 @constraint(model, E5, - X14 + SQR(X6) == 0)
 @constraint(model, E6, - X13 + Y4*X6 == 0)
