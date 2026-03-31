@@ -27,7 +27,7 @@ function generate(input_dir, output_dir)
             output_path = joinpath(output_dir, replace(entry, ".gms" => ".jl"))
             model = JuMPConverter.GAMS.read_model(input_path)
             open(output_path, "w") do io
-                println(io, model)
+                return println(io, model)
             end
         end
     end

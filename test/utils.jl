@@ -44,7 +44,7 @@ function test_output(reader, root_dir)
     input_dir = joinpath(root_dir, "input")
     output_dir = joinpath(root_dir, "output")
     mktempdir() do tmpdir
-        _generate_and_test(reader, input_dir, output_dir, tmpdir)
+        return _generate_and_test(reader, input_dir, output_dir, tmpdir)
     end
 end
 
@@ -65,7 +65,7 @@ function _generate_and_test(reader, input_dir, output_dir, tmpdir)
             expected_path = joinpath(output_dir, base_name * ".jl")
             model = reader(input_path)
             open(tmp_path, "w") do io
-                println(io, model)
+                return println(io, model)
             end
             @testset "$base_name" begin
                 test_files(tmp_path, expected_path)
