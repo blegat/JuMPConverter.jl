@@ -52,9 +52,9 @@ function clean_expression(expr::AbstractString)
             break  # malformed, give up
         end
         paren_end = i - 1  # position of closing ')'
-        base = strip(s[paren_start+1:comma_pos-1])
-        exp = strip(s[comma_pos+1:paren_end-1])
-        s = s[1:start-1] * "($base)^($exp)" * s[paren_end+1:end]
+        base = strip(s[(paren_start+1):(comma_pos-1)])
+        exp = strip(s[(comma_pos+1):(paren_end-1)])
+        s = s[1:(start-1)] * "($base)^($exp)" * s[(paren_end+1):end]
     end
     # Convert ** to ^
     s = replace(s, "**" => "^")
@@ -135,7 +135,10 @@ function parse_bound(model::JuMPConverter.Model, name, suffix, value)
 end
 
 function parse_solve(model::JuMPConverter.Model, s::AbstractString)
-    m = match(r"solve\s+\w+\s+using\s+\w+\s+(minimizing|maximizing|min|max)\s+(\w+)"i, s)
+    m = match(
+        r"solve\s+\w+\s+using\s+\w+\s+(minimizing|maximizing|min|max)\s+(\w+)"i,
+        s,
+    )
     if m === nothing
         error("Cannot parse solve statement: $s")
     end
@@ -156,7 +159,13 @@ function parse_constraint(
     expression::AbstractString,
 )
     expression = clean_expression(expression)
-    push!(model, JuMPConverter.Constraint(; name = strip(name), expression = strip(expression)))
+    push!(
+        model,
+        JuMPConverter.Constraint(;
+            name = strip(name),
+            expression = strip(expression),
+        ),
+    )
     return
 end
 
@@ -183,12 +192,12 @@ function parse_model(mod::AbstractString)
                     (rest) -> parse_variable(model, rest; integer = true),
                 r"^Free\s+Variables?\b"i =>
                     (rest) -> parse_variable(model, rest),
-                r"^Variables?\b"i =>
-                    (rest) -> parse_variable(model, rest),
+                r"^Variables?\b"i => (rest) -> parse_variable(model, rest),
                 r"^(solve\s+.*)"is =>
                     (full_stmt, _) -> parse_solve(model, full_stmt),
                 r"^(\w+)\s*\.\s*(\w+)\s*="i =>
-                    (name, suffix, rest) -> parse_bound(model, name, suffix, rest),
+                    (name, suffix, rest) ->
+                        parse_bound(model, name, suffix, rest),
                 r"^(\w+)\s*\.\."i =>
                     (name, rest) -> parse_constraint(model, name, rest),
             ],
