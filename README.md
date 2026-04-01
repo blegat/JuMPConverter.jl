@@ -3,7 +3,7 @@
 [![Build Status](https://github.com/blegat/JuMPConverter.jl/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/blegat/JuMPConverter.jl/actions?query=workflow%3ACI)
 [![codecov](https://codecov.io/gh/blegat/JuMPConverter.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/blegat/JuMPConverter.jl)
 
-> [!INFO]
+> [!NOTE]
 > There is a [GSOC proposal](https://github.com/jump-dev/GSOC) to improve this package.
 
 [JuMPConverter.jl](https://github.com/blegat/JuMPConverter.jl) is a converter
