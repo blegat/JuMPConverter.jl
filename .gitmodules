@@ -1,3 +1,6 @@
 [submodule "test/CACE-D-21-01061"]
 	path = test/GAMS/input/CACE-D-21-01061
 	url = git@github.com:omega-icl/CACE-D-21-01061.git
+[submodule "test/GAMS/input/gamsworld"]
+	path = test/GAMS/input/gamsworld
+	url = git@github.com:GAMS-dev/gamsworld.git
