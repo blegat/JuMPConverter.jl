@@ -8,11 +8,19 @@ Base.@kwdef struct Axes
     condition::Union{Nothing,String} = nothing
 end
 
+Base.@kwdef struct Set
+    name::String
+    parent::Union{Nothing,String} = nothing  # for subset sets like ig(i)
+    description::String = ""
+end
+
 Base.@kwdef struct Parameter
     name::String
     axes::Union{Nothing,Axes} = nothing
-    integer::Bool
+    integer::Bool = false
     default::Union{Nothing,Float64} = nothing
+    domain::Vector{String} = String[]  # set names for indexing
+    description::String = ""
 end
 
 Base.@kwdef struct Variable
@@ -38,18 +46,29 @@ Base.@kwdef struct Constraint
 end
 
 mutable struct Model
+    sets::OrderedCollections.OrderedDict{String,Set}
+    aliases::OrderedCollections.OrderedDict{String,String}  # alias_name => parent_name
     parameters::OrderedCollections.OrderedDict{String,Parameter}
     variables::OrderedCollections.OrderedDict{String,Variable}
     objective::Union{Nothing,Objective}
     constraints::Vector{Constraint}
+    gdx_file::Union{Nothing,String}  # path to GDX file, if any
     function Model()
         return new(
+            OrderedCollections.OrderedDict{String,Set}(),
+            OrderedCollections.OrderedDict{String,String}(),
             OrderedCollections.OrderedDict{String,Parameter}(),
             OrderedCollections.OrderedDict{String,Variable}(),
             nothing,
             Constraint[],
+            nothing,
         )
     end
+end
+
+function Base.push!(model::Model, set::Set)
+    model.sets[set.name] = set
+    return model
 end
 
 function Base.push!(model::Model, parameter::Parameter)
