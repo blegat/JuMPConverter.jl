@@ -70,7 +70,10 @@ function _preprocess(mod::AbstractString)
                 rest = replace(directive, r"^load\w*\s+"i => "")
                 symbols = [strip(s) for s in split(rest) if !isempty(strip(s))]
                 if !isnothing(current_gdx_file) && !isempty(symbols)
-                    push!(gdx_directives, GDXDirective(current_gdx_file, symbols))
+                    push!(
+                        gdx_directives,
+                        GDXDirective(current_gdx_file, symbols),
+                    )
                 end
             end
             # Skip all other $ directives ($if, $eval, $set, $batinclude, $onEmpty, etc.)
@@ -138,7 +141,10 @@ Convert a GAMS expression to Julia/JuMP syntax:
 - `param(idx1,idx2)` → `param[idx1,idx2]`
 - Also calls `clean_expression` for operator conversion.
 """
-function convert_gams_expression(expr::AbstractString, model::JuMPConverter.Model)
+function convert_gams_expression(
+    expr::AbstractString,
+    model::JuMPConverter.Model,
+)
     s = clean_expression(expr)
     # Convert sum(domain, body) to sum(body for vars in sets)
     s = _convert_sums(s, model)
@@ -203,7 +209,7 @@ function _convert_sums(s::AbstractString, model::JuMPConverter.Model)
         end
         # Parse domain names — handle both simple "jc" and complex "js1(s,j)"
         if startswith(domain_str, "(")
-            inner = strip(domain_str[2:end-1])
+            inner = strip(domain_str[2:(end-1)])
             sets = [strip(x) for x in split(inner, ',')]
         else
             # Could be "jc" or "js1(s,j)" — strip parenthetical part for generator
@@ -248,9 +254,26 @@ function _convert_indexing(s::AbstractString, model::JuMPConverter.Model)
         for m in reverse(collect(eachmatch(r"\b(\w+)\s*\(", result)))
             name = m.captures[1]
             # Skip known functions
-            if lowercase(name) in ("sum", "power", "sqr", "sqrt", "abs", "exp",
-                                    "log", "sin", "cos", "min", "max", "mod",
-                                    "ceil", "floor", "round", "sign", "ord", "card")
+            if lowercase(name) in (
+                "sum",
+                "power",
+                "sqr",
+                "sqrt",
+                "abs",
+                "exp",
+                "log",
+                "sin",
+                "cos",
+                "min",
+                "max",
+                "mod",
+                "ceil",
+                "floor",
+                "round",
+                "sign",
+                "ord",
+                "card",
+            )
                 continue
             end
             if lowercase(name) in known_names || name in known_names
@@ -295,11 +318,16 @@ function parse_set(model::JuMPConverter.Model, s::AbstractString)
             parse_alias(model, replace(line, r"^alias\s*"i => ""))
             continue
         end
-        m = match(r"^\s*(\w+)(?:\(([^)]*)\))?\s*(.*?)(?:\s*/\s*(.*?)\s*/)?$", line)
+        m = match(
+            r"^\s*(\w+)(?:\(([^)]*)\))?\s*(.*?)(?:\s*/\s*(.*?)\s*/)?$",
+            line,
+        )
         m === nothing && continue
         name = lowercase(m.captures[1])
         parent_str = m.captures[2]
-        parent = parent_str !== nothing ? lowercase(strip(split(parent_str, ',')[1])) : nothing
+        parent =
+            parent_str !== nothing ?
+            lowercase(strip(split(parent_str, ',')[1])) : nothing
         push!(model, JuMPConverter.Set(; name, parent))
     end
 end
@@ -317,11 +345,15 @@ function parse_parameter_decl(model::JuMPConverter.Model, s::AbstractString)
         line = strip(line)
         isempty(line) && continue
         # Match: name or name(domain) followed by optional description and optional / data /
-        m = match(r"^\s*(\w+)\s*(?:\(([^)]*)\))?\s*(.*?)(?:\s*/\s*(.*?)\s*/)?$", line)
+        m = match(
+            r"^\s*(\w+)\s*(?:\(([^)]*)\))?\s*(.*?)(?:\s*/\s*(.*?)\s*/)?$",
+            line,
+        )
         m === nothing && continue
         name = lowercase(m.captures[1])
         domain_str = m.captures[2]
-        domain = domain_str !== nothing ?
+        domain =
+            domain_str !== nothing ?
             [lowercase(strip(d)) for d in split(domain_str, ',')] : String[]
         push!(model, JuMPConverter.Parameter(; name, domain))
     end
@@ -334,13 +366,13 @@ function parse_scalar_decl(model::JuMPConverter.Model, s::AbstractString)
         m = match(r"^\s*(\w+)\s*", remaining)
         m === nothing && break
         name = lowercase(m.captures[1])
-        remaining = strip(remaining[length(m.match)+1:end])
+        remaining = strip(remaining[(length(m.match)+1):end])
         # Skip description, look for / value /
         if occursin('/', remaining)
             slash1 = findfirst('/', remaining)
             slash2 = findnext('/', remaining, slash1 + 1)
             if slash2 !== nothing
-                remaining = strip(remaining[slash2+1:end])
+                remaining = strip(remaining[(slash2+1):end])
             end
         end
         push!(model, JuMPConverter.Parameter(; name, domain = String[]))
@@ -351,7 +383,7 @@ function parse_scalar_decl(model::JuMPConverter.Model, s::AbstractString)
     end
 end
 
-function _split_outside_parens(s::AbstractString, delim::Char=',')
+function _split_outside_parens(s::AbstractString, delim::Char = ',')
     parts = String[]
     depth = 0
     start = 1
@@ -389,8 +421,9 @@ function _parse_variable_names(
             indices_str = m.captures[2]
             axes = nothing
             if indices_str !== nothing
-                axe_list = [JuMPConverter.Axe(; name = strip(idx), set = strip(idx))
-                            for idx in split(indices_str, ',')]
+                axe_list = [
+                    JuMPConverter.Axe(; name = strip(idx), set = strip(idx)) for idx in split(indices_str, ',')
+                ]
                 axes = JuMPConverter.Axes(; axes = axe_list)
             end
             push!(
@@ -452,16 +485,21 @@ function parse_variable(
         end
         if next_pos !== nothing
             # Parse everything before this keyword with current kwargs
-            before = remaining[1:next_pos-1]
+            before = remaining[1:(next_pos-1)]
             if !isempty(strip(before))
                 _parse_variable_names(model, before; current_kwargs...)
             end
-            remaining = remaining[next_pos+next_len:end]
+            remaining = remaining[(next_pos+next_len):end]
             lb = get(next_kwargs, :lower_bound, nothing)
             ub = get(next_kwargs, :upper_bound, nothing)
             bi = get(next_kwargs, :binary, false)
             int = get(next_kwargs, :integer, false)
-            current_kwargs = (; lower_bound = lb, upper_bound = ub, binary = bi, integer = int)
+            current_kwargs = (;
+                lower_bound = lb,
+                upper_bound = ub,
+                binary = bi,
+                integer = int,
+            )
         else
             # No more keywords, parse the rest
             _parse_variable_names(model, remaining; current_kwargs...)
@@ -546,8 +584,10 @@ function parse_constraint(
     expression = convert_gams_expression(expression, model)
     axes = nothing
     if indices !== nothing
-        axe_list = [JuMPConverter.Axe(; name = strip(idx), set = strip(idx))
-                    for idx in split(indices, ',')]
+        axe_list = [
+            JuMPConverter.Axe(; name = strip(idx), set = strip(idx)) for
+            idx in split(indices, ',')
+        ]
         axes = JuMPConverter.Axes(; axes = axe_list)
     end
     push!(
@@ -570,7 +610,10 @@ function parse_alias(model::JuMPConverter.Model, s::AbstractString)
     end
 end
 
-function parse_model(mod::AbstractString; gams_params::Dict{String,String} = Dict{String,String}())
+function parse_model(
+    mod::AbstractString;
+    gams_params::Dict{String,String} = Dict{String,String}(),
+)
     preprocessed, gdx_directives = _preprocess(mod)
     # Substitute GAMS parameters like %iname%, %MTYPE% in all text
     for (k, v) in gams_params
@@ -596,14 +639,11 @@ function parse_model(mod::AbstractString; gams_params::Dict{String,String} = Dic
                 r"^Equations?\b"i => (_) -> nothing,
                 r"^Display\b"i => (_) -> nothing,
                 r"^option\b"i => (_) -> nothing,
-                r"^alias\b"i =>
-                    (rest) -> parse_alias(model, rest),
-                r"^Sets?\b"i =>
-                    (rest) -> parse_set(model, rest),
+                r"^alias\b"i => (rest) -> parse_alias(model, rest),
+                r"^Sets?\b"i => (rest) -> parse_set(model, rest),
                 r"^Parameters?\b"i =>
                     (rest) -> parse_parameter_decl(model, rest),
-                r"^Scalars?\b"i =>
-                    (rest) -> parse_scalar_decl(model, rest),
+                r"^Scalars?\b"i => (rest) -> parse_scalar_decl(model, rest),
                 r"^Positive\s+Variables?\b"i =>
                     (rest) -> parse_variable(model, rest; lower_bound = "0"),
                 r"^Negative\s+Variables?\b"i =>
@@ -629,17 +669,23 @@ function parse_model(mod::AbstractString; gams_params::Dict{String,String} = Dic
                     (name, suffix, rest) ->
                         parse_bound(model, name, suffix, rest),
                 r"^(\w+)\s*(\([^)]*\))?\s*\.\."i =>
-                    (name, indices, rest) ->
-                        parse_constraint(model, name,
-                            indices !== nothing ? strip(indices[2:end-1]) : nothing,
-                            rest),
+                    (name, indices, rest) -> parse_constraint(
+                        model,
+                        name,
+                        indices !== nothing ? strip(indices[2:(end-1)]) :
+                        nothing,
+                        rest,
+                    ),
             ],
         )
     end
     return model
 end
 
-function read_model(path::AbstractString; gams_params::Dict{String,String} = Dict{String,String}())
+function read_model(
+    path::AbstractString;
+    gams_params::Dict{String,String} = Dict{String,String}(),
+)
     model = parse_model(read(path, String); gams_params)
     # Resolve GDX file path relative to the .gms file (only if relative)
     if model.gdx_file !== nothing && !isabspath(model.gdx_file)
