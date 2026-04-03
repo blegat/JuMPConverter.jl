@@ -4,7 +4,7 @@ function parse_axe(s::AbstractString)
         return JuMPConverter.Axe(nothing, s)
     else
         @assert sp[2] == "in"
-        return JuMPConverter.Axe(sp[1], sp[3])
+        return JuMPConverter.Axe(sp[1], replace(sp[3], ".." => ":"))
     end
 end
 
