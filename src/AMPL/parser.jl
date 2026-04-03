@@ -83,7 +83,7 @@ Parse AMPL .dat file content from a vector of lines.
 - `Dict{String, Any}`: Dictionary mapping parameter names to values
 """
 function parse_ampl_dat(text::String)
-    data = Dict{String, Any}()
+    data = Dict{String,Any}()
     for element in split(text, ";")
         element = strip(element)
         if startswith(element, "fix")
@@ -126,7 +126,9 @@ function _get_command(s::AbstractString, expected::Vector{String})
             return command, chop(s, head = length(command), tail = 0)
         end
     end
-    error("Cannot parse element, does not start with any of the commands $expected in:\"\n$s\"")
+    return error(
+        "Cannot parse element, does not start with any of the commands $expected in:\"\n$s\"",
+    )
 end
 
 function parse_set(element::AbstractString)
@@ -180,21 +182,21 @@ function parse_param(element::AbstractString)
 
     i = 1
     line = lines[i]
-    
+
     # Parse scalar parameter: param NAME := VALUE;
     m = match(r"(\w+)\s*:=\s*([^;]+)", line)
     if m !== nothing
         @assert i == length(lines)
         return m.captures[1], _any_parse(m.captures[2])
     end
-    
+
     # Parse 1D array: param NAME := INDEX1 VAL1 INDEX2 VAL2 ... ;
     # or multi-line: param NAME := \n INDEX1 VAL1 \n INDEX2 VAL2 \n ... ;
     m = match(r"(\w+)\s*:=\s*$", line)
     if m !== nothing
         name = m.captures[1]
         i += 1  # Move to next line
-        arr_data = Dict{Int, Float64}()
+        arr_data = Dict{Int,Float64}()
         while i <= length(lines)
             line = strip(lines[i])
             if line == ";" || isempty(line)
@@ -222,7 +224,7 @@ function parse_param(element::AbstractString)
         return name, value
     end
 
-    error("Cannot parse parameter:\"\n$element\"")
+    return error("Cannot parse parameter:\"\n$element\"")
 end
 
 """
@@ -235,9 +237,9 @@ function parse_dataframe(header_line::AbstractString, table::AbstractString)
     lines = _lines(table)
     col_names = split(strip(header_line))
     num_cols = length(col_names)
-    
+
     @assert num_cols > 0
-    
+
     # Parse data rows to determine structure
     # First, scan to see if we have 1 or 2 indices
     scan_i = 1
@@ -274,7 +276,7 @@ function parse_dataframe(header_line::AbstractString, table::AbstractString)
         @assert num_indices == 1
         IndexType = String
     end
-    cols = Any["index" => IndexType[]]
+    cols = Any["index"=>IndexType[]]
     for col in col_names
         push!(cols, col => Union{Float64,Missing}[])
     end
@@ -289,13 +291,13 @@ function parse_dataframe(header_line::AbstractString, table::AbstractString)
             i += 1
             break
         end
-        
+
         # Skip header lines with just ":"
         if line == ":" || (startswith(line, ":") && !occursin(":=", line))
             i += 1
             continue
         end
-        
+
         parts = split(line)
         index = if all_ints
             ntuple(i -> parse(Int, parts[i]), num_indices)
@@ -303,14 +305,14 @@ function parse_dataframe(header_line::AbstractString, table::AbstractString)
             parts[1]
         end
         vals = Any[index]
-        
+
         for (col_idx, col_name) in enumerate(col_names)
             val_idx = num_indices + col_idx  # Skip first two parts (indices)
             push!(vals, _maybe_parse(parts[val_idx]))
         end
 
         push!(df, vals)
-       
+
         i += 1
     end
 
@@ -325,7 +327,7 @@ function _range(bounds::NTuple{2,Int})
     end
 end
 
-function _axes(indices::Vector{NTuple{N,Int}}) where N
+function _axes(indices::Vector{NTuple{N,Int}}) where {N}
     return ntuple(Val(N)) do i
         return _range(extrema(Base.Fix2(getindex, i), indices))
     end
@@ -341,7 +343,7 @@ function _container(vals::Array{Float64}, ax)
     return JuMP.Containers.DenseAxisArray(vals, ax...)
 end
 
-function df_to_container!(data::Dict{String, Any}, df::DataFrames.DataFrame)
+function df_to_container!(data::Dict{String,Any}, df::DataFrames.DataFrame)
     df = sort(df, :index, by = reverse)
     ax = _axes(df.index)
     # Store each column as a separate parameter
@@ -352,7 +354,7 @@ function df_to_container!(data::Dict{String, Any}, df::DataFrames.DataFrame)
         vals = df[!, col]
         sz = length.(ax)
         container = if length(vals) < prod(sz) || any(ismissing, vals)
-            dict = OrderedCollections.OrderedDict{NTuple{length(ax),Int}, Float64}()
+            dict = OrderedCollections.OrderedDict{NTuple{length(ax),Int},Float64}()
             for i in axes(df, 1)
                 if !ismissing(vals[i])
                     dict[df.index[i]] = vals[i]
@@ -365,7 +367,7 @@ function df_to_container!(data::Dict{String, Any}, df::DataFrames.DataFrame)
         end
         data[col] = container
     end
-    
+
     return
 end
 
@@ -379,16 +381,16 @@ function parse_indexed_table(text::AbstractString)
     lines = _lines(text)
     i = 1
     line = strip(lines[i])
-    
+
     # Extract parameter name and dimensions
     # Format: param NAME [*,*,1] or param \n NAME [*,*,1]
     param_name::String = ""
     dims_pattern::String = ""
-    
+
     # Check if param is on its own line (with optional trailing space)
     if occursin(r"^param\s*$", line)
         if i + 1 <= length(lines)
-            next_line = strip(lines[i + 1])
+            next_line = strip(lines[i+1])
             # Match: "E [*,*,1]" or "NAME [dims]"
             m = match(r"^(\w+)\s+(\[.*?\])", next_line)
             if m !== nothing
@@ -411,11 +413,11 @@ function parse_indexed_table(text::AbstractString)
             return nothing
         end
     end
-    
+
     # Count dimensions from pattern [*,*,1] -> 3 dimensions
     # Count commas and add 1 (e.g., [*,*,1] has 2 commas, so 3 dimensions)
     num_dims = count(==(','), dims_pattern) + 1
-    
+
     # Parse the data
     # Skip the line with [*,*,h] if it's on the current line, otherwise it's already been consumed
     if i <= length(lines)
@@ -424,11 +426,11 @@ function parse_indexed_table(text::AbstractString)
             i += 1  # Move past the [*,*,h] line
         end
     end
-    
+
     # Initialize storage based on dimensions
     if num_dims == 1
         # 1D array: simple list
-        arr_data = Dict{Int, Union{Float64, Missing}}()
+        arr_data = Dict{Int,Union{Float64,Missing}}()
         while i <= length(lines)
             line = strip(lines[i])
             if line == ";" || isempty(line)
@@ -453,7 +455,7 @@ function parse_indexed_table(text::AbstractString)
         return param_name, result
     elseif num_dims == 2
         # 2D array: table format
-        arr_data = Dict{Tuple{Int, Int}, Union{Float64, Missing}}()
+        arr_data = Dict{Tuple{Int,Int},Union{Float64,Missing}}()
         while i <= length(lines)
             line = strip(lines[i])
             if line == ";" || isempty(line)
@@ -477,7 +479,7 @@ function parse_indexed_table(text::AbstractString)
         @assert !isempty(arr_data)
         max_idx1 = maximum([k[1] for k in keys(arr_data)])
         max_idx2 = maximum([k[2] for k in keys(arr_data)])
-        result = Matrix{Union{Float64, Missing}}(undef, max_idx1, max_idx2)
+        result = Matrix{Union{Float64,Missing}}(undef, max_idx1, max_idx2)
         fill!(result, NaN)
         for ((idx1, idx2), val) in arr_data
             result[idx1, idx2] = val
@@ -495,25 +497,25 @@ end
 Parse multi-dimensional arrays (3D+) that are stored slice-by-slice in AMPL format.
 """
 function parse_multi_dimensional_array(
-    lines::Vector{<:AbstractString}, 
-    start_idx::Int, 
-    num_dims::Int
+    lines::Vector{<:AbstractString},
+    start_idx::Int,
+    num_dims::Int,
 )
     i = start_idx
-    arr_data = Dict{Vector{Int}, Union{Float64, Missing}}()
-    current_slice_indices = Dict{Int, Int}()  # Track which slice we're in for each dimension
-    
+    arr_data = Dict{Vector{Int},Union{Float64,Missing}}()
+    current_slice_indices = Dict{Int,Int}()  # Track which slice we're in for each dimension
+
     # Determine dimension sizes by parsing all data first
     dim_sizes = zeros(Int, num_dims)
-    
+
     while i <= length(lines)
         line = strip(lines[i])
-        
+
         if line == ";"
             i += 1
             break
         end
-        
+
         # Check for new slice indicator: [*,*,h] or [*,*,h] :
         # Match [*,*,h] with or without trailing colon
         m = match(r"\[.*?,\s*(\d+)\]", line)
@@ -524,18 +526,19 @@ function parse_multi_dimensional_array(
             dim_sizes[num_dims] = max(dim_sizes[num_dims], slice_idx)
             i += 1
             # Skip header line with column indices (if present)
-            if i <= length(lines) && (strip(lines[i]) == ":" || startswith(strip(lines[i]), ":"))
+            if i <= length(lines) &&
+               (strip(lines[i]) == ":" || startswith(strip(lines[i]), ":"))
                 i += 1
             end
             continue
         end
-        
+
         # Skip header lines
         if line == ":" || startswith(line, ":")
             i += 1
             continue
         end
-        
+
         # Parse data row
         # For 3D array E[s,w,h] in format: s w1 w2 w3 w4
         # First part is s (dimension 1), remaining parts are values for different w (dimension 2)
@@ -546,7 +549,7 @@ function parse_multi_dimensional_array(
             try
                 idx1 = parse(Int, parts[1])
                 dim_sizes[1] = max(dim_sizes[1], idx1)
-                
+
                 # Remaining parts are values for dimension 2 (w) for this s and current h
                 h_idx = get(current_slice_indices, num_dims, 1)  # Default to 1 if not set
                 for (w_idx, val_str) in enumerate(parts[2:end])
@@ -559,10 +562,10 @@ function parse_multi_dimensional_array(
                 # Skip if first part is not an integer (might be a header or comment)
             end
         end
-        
+
         i += 1
     end
-    
+
     # Create multi-dimensional array
     if !isempty(arr_data)
         # For 3D, create a 3D array; for higher dimensions, use nested structure
@@ -571,7 +574,7 @@ function parse_multi_dimensional_array(
             dim1 = max(1, dim_sizes[1])
             dim2 = max(1, dim_sizes[2])
             dim3 = max(1, dim_sizes[3])
-            result = Array{Union{Float64, Missing}}(undef, dim1, dim2, dim3)
+            result = Array{Union{Float64,Missing}}(undef, dim1, dim2, dim3)
             # Initialize with NaN
             fill!(result, NaN)
             for (indices, val) in arr_data
@@ -586,6 +589,6 @@ function parse_multi_dimensional_array(
         end
         return result
     end
-    
+
     return i
 end

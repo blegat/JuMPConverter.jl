@@ -3,7 +3,10 @@ import MacMPEC
 import JuMPConverter
 
 @testset "$name" for name in MacMPEC.list()
-    if startswith(name, "incid-set") || startswith(name, "nash") || startswith(name, "pack-comp") || startswith(name, "pack-rig")
+    if startswith(name, "incid-set") ||
+       startswith(name, "nash") ||
+       startswith(name, "pack-comp") ||
+       startswith(name, "pack-rig")
         continue
     end
     if startswith(name, "flp4")

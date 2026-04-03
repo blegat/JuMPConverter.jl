@@ -1,9 +1,17 @@
 # Example: Parse the quad_b1_S5.dat file
-dat_file = joinpath(@__DIR__, "..", "..", "optimTarif", "run_tests", "results", "quad_b1_S5.dat")
+dat_file = joinpath(
+    @__DIR__,
+    "..",
+    "..",
+    "optimTarif",
+    "run_tests",
+    "results",
+    "quad_b1_S5.dat",
+)
 
 if isfile(dat_file)
     data = read_ampl_dat(dat_file)
-    
+
     println("Parsed parameters:")
     for key in sort(collect(keys(data)))
         val = data[key]
