@@ -9,19 +9,13 @@ end
 
 function Base.show(io::IO, variable::Variable)
     print(io, "@variable(model, ")
-    # Build the variable expression with optional indices
-    name_str = variable.name
-    if variable.axes !== nothing
-        indices = join(["$(a.name) in $(a.set)" for a in variable.axes.axes], ", ")
-        name_str = "$(variable.name)[$indices]"
-    end
     if !isnothing(variable.fixed_value)
-        print(io, "$name_str == $(variable.fixed_value)")
+        print(io, "$(variable.name) == $(variable.fixed_value)")
     else
         if !isnothing(variable.lower_bound) && !isnothing(variable.upper_bound)
             print(io, "$(variable.lower_bound) <= ")
         end
-        print(io, name_str)
+        print(io, variable.name)
         if isnothing(variable.upper_bound)
             if !isnothing(variable.lower_bound)
                 print(io, " >= $(variable.lower_bound)")
@@ -53,18 +47,10 @@ function Base.show(io::IO, objective::Objective)
 end
 
 function Base.show(io::IO, constraint::Constraint)
-    if constraint.axes !== nothing
-        indices = join(["$(a.name) in $(a.set)" for a in constraint.axes.axes], ", ")
-        print(
-            io,
-            "@constraint(model, $(constraint.name)[$indices], $(constraint.expression))",
-        )
-    else
-        print(
-            io,
-            "@constraint(model, $(constraint.name), $(constraint.expression))",
-        )
-    end
+    print(
+        io,
+        "@constraint(model, $(constraint.name), $(constraint.expression))",
+    )
     return
 end
 
