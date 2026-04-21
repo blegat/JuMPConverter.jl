@@ -49,20 +49,26 @@ function test_output(reader, root_dir)
 end
 
 function _generate_and_test(reader, input_dir, output_dir, tmpdir)
+    isdir(input_dir) || return
     for entry in sort(readdir(input_dir))
         input_path = joinpath(input_dir, entry)
         if isdir(input_path)
+            sub_output = joinpath(output_dir, entry)
+            # Only recurse into directories that have a corresponding output dir
+            isdir(sub_output) || continue
             _generate_and_test(
                 reader,
                 input_path,
-                joinpath(output_dir, entry),
+                sub_output,
                 joinpath(tmpdir, entry),
             )
         elseif endswith(entry, ".gms")
-            mkpath(tmpdir)
             base_name = name(entry)
-            tmp_path = joinpath(tmpdir, base_name * ".jl")
             expected_path = joinpath(output_dir, base_name * ".jl")
+            # Skip files without expected output
+            isfile(expected_path) || continue
+            mkpath(tmpdir)
+            tmp_path = joinpath(tmpdir, base_name * ".jl")
             model = reader(input_path)
             open(tmp_path, "w") do io
                 return println(io, model)

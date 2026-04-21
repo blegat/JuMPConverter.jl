@@ -5,12 +5,17 @@ version = "0.1.0"
 
 [deps]
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+GDXInterface = "b8352055-3412-4df1-864e-ee7edae71aec"
 JuMP = "4076af6c-e467-56ae-b986-b466b2749572"
 MathOptInterface = "b8f27783-ece8-5eb3-8dc8-9495eed66fee"
 OrderedCollections = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
 
+[sources]
+GDXInterface = {url = "https://github.com/jd-foster/GDXInterface.jl"}
+
 [compat]
-DataFrames = "1.7"
+DataFrames = "1"
+GDXInterface = "0.1"
 JuMP = "1.29.3"
 MathOptInterface = "1.48.0"
 OrderedCollections = "1.7"
