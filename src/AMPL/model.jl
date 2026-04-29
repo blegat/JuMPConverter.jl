@@ -1,121 +1,372 @@
-function parse_axe(s::AbstractString)
-    sp = strip.(split(s))
+"""
+    _read_axes!(lex::Lexer)
+
+Parse an indexing expression `{i in S, j in T : condition}` from tokens.
+Returns `(Axes, nothing)` or `(nothing, nothing)` if no `{` is next.
+"""
+function _read_axes!(lex::Lexer)
+    if peek(lex).kind != TOKEN_LBRACE
+        return nothing
+    end
+    read_token!(lex)  # consume {
+    # Read everything until }, tracking brace depth for nested expressions
+    content = read_balanced!(lex, TOKEN_LBRACE, TOKEN_RBRACE)
+    # Split on `:` for condition (but not `::` or `:=`)
+    # The condition is after the last top-level `:` that is not inside braces
+    axes_str, cond = _split_condition(content)
+    axes = _parse_axe.(_split_axes(axes_str))
+    return JuMPConverter.Axes(axes, isempty(cond) ? nothing : cond)
+end
+
+function _split_condition(s::AbstractString)
+    # Find the last `:` not inside braces/brackets/parens
+    depth = 0
+    last_colon = 0
+    for (i, c) in enumerate(s)
+        if c in ('{', '[', '(')
+            depth += 1
+        elseif c in ('}', ']', ')')
+            depth -= 1
+        elseif c == ':' && depth == 0
+            last_colon = i
+        end
+    end
+    if last_colon == 0
+        return strip(s), ""
+    end
+    return strip(s[1:last_colon-1]), strip(s[last_colon+1:end])
+end
+
+function _split_axes(s::AbstractString)
+    # Split on commas not inside braces/brackets/parens
+    parts = String[]
+    depth = 0
+    start = 1
+    for (i, c) in enumerate(s)
+        if c in ('{', '[', '(')
+            depth += 1
+        elseif c in ('}', ']', ')')
+            depth -= 1
+        elseif c == ',' && depth == 0
+            push!(parts, strip(s[start:i-1]))
+            start = i + 1
+        end
+    end
+    push!(parts, strip(s[start:end]))
+    return filter(!isempty, parts)
+end
+
+function _parse_axe(s::AbstractString)
+    sp = split(strip(s))
     if length(sp) == 1
-        return JuMPConverter.Axe(nothing, s)
+        return JuMPConverter.Axe(sp[1], sp[1])
     else
         @assert sp[2] == "in"
-        return JuMPConverter.Axe(sp[1], sp[3])
+        return JuMPConverter.Axe(sp[1], join(sp[3:end]))
     end
 end
 
-function parse_axes(rest::AbstractString)
-    if startswith(rest, "{")
-        j = findfirst(isequal('}'), rest)
-        if isnothing(j)
-            error("Cannot find closing } in $rest")
-        end
-        axes_str, rest = rest[2:(j-1)], strip(rest[(j+1):end])
-        axes_str, cond = JuMPConverter.next_token(axes_str, ':')
-        axes = parse_axe.(strip.(split(axes_str, ',')))
-        return JuMPConverter.Axes(axes, isempty(cond) ? nothing : cond), rest
-    else
-        return nothing, rest
-    end
-end
+"""
+    _read_expression!(lex::Lexer, stops)
 
-function parse_parameter(rest::AbstractString)
-    name, rest = strip.(split(rest, limit = 2))
-    axes, rest = parse_axes(rest)
-    default = nothing
-    integer = false
-    while !isempty(rest)
-        JuMPConverter._get_command(
-            rest,
-            [
-                "default" =>
-                    (_, s) -> begin
-                        def, rest = JuMPConverter.next_token(s)
-                        default = parse(Float64, def)
-                    end,
-                "integer" => (_, s) -> begin
-                    integer = true
-                    rest = s
-                end,
-            ],
-        )
-    end
-    return JuMPConverter.Parameter(; name, axes, integer, default)
-end
-
-function parse_variable(rest::AbstractString)
-    name, rest = strip.(split(rest, limit = 2))
-    axes, rest = parse_axes(rest)
-    lower_bound = nothing
-    upper_bound = nothing
-    rest = strip(replace(rest, "," => ""))
-    while !isempty(rest)
-        JuMPConverter._get_command(
-            rest,
-            [
-                ">=" =>
-                    (_, s) -> (lower_bound, rest) = JuMPConverter.next_token(s),
-                "<=" =>
-                    (_, s) -> (upper_bound, rest) = JuMPConverter.next_token(s),
-            ],
-        )
-    end
-    return JuMPConverter.Variable(; name, axes, lower_bound, upper_bound)
-end
-
-function parse_objective(sense::MOI.OptimizationSense, s::AbstractString)
-    sp = strip.(split(s, ':'))
-    if length(sp) == 1
-        name = nothing
-        expression = s
-    else
-        name, expression = sp
-    end
-    expression = clean_expression(expression)
-    return JuMPConverter.Objective(; name, sense, expression)
-end
-
-function parse_constraint(s::AbstractString)
-    header, expression = strip.(rsplit(s, ':', limit = 2))
-    name, axe = strip.(split(header, limit = 2))
-    axes, rest = parse_axes(axe)
-    @assert isempty(rest)
-    expression = clean_expression(expression)
-    return JuMPConverter.Constraint(; name, axes, expression)
-end
-
-function parse_model(mod::AbstractString)
-    model = JuMPConverter.Model()
-    # Remove comments
-    mod = replace(mod, r"#.*" => "")
-    commands = filter(!isempty, strip.(split(mod, ';')))
-    first_constraint = nothing
-    for (i, command) in enumerate(commands)
-        JuMPConverter._get_command(
-            command,
-            [
-                "param" => (_, rest) -> push!(model, parse_parameter(rest)),
-                "var" => (_, rest) -> push!(model, parse_variable(rest)),
-                "maximize" =>
-                    (_, rest) ->
-                        model.objective = parse_objective(MOI.MAX_SENSE, rest),
-                "subject to" =>
-                    (_, rest) -> begin
-                        push!(model, parse_constraint(rest))
-                        first_constraint = i + 1
-                    end,
-            ],
-        )
-        if !isnothing(first_constraint)
+Read tokens until a stop token kind is reached, returning the expression
+text. Handles balanced braces/brackets/parens within.
+"""
+function _read_expression!(lex::Lexer, stops::NTuple{N,TokenKind}) where {N}
+    parts = String[]
+    prev_kind = nothing
+    while true
+        t = peek(lex)
+        if t.kind in stops || t.kind == TOKEN_EOF
             break
         end
+        read_token!(lex)
+        val = t.value
+        # Insert spacing intelligently
+        if !isempty(parts) && _needs_space(prev_kind, t.kind)
+            push!(parts, " ")
+        end
+        if t.kind == TOKEN_LBRACE
+            push!(parts, "{")
+            inner = read_balanced!(lex, TOKEN_LBRACE, TOKEN_RBRACE)
+            push!(parts, inner)
+            push!(parts, "}")
+            prev_kind = TOKEN_RBRACE
+        elseif t.kind == TOKEN_LBRACKET
+            push!(parts, "[")
+            inner = read_balanced!(lex, TOKEN_LBRACKET, TOKEN_RBRACKET)
+            push!(parts, inner)
+            push!(parts, "]")
+            prev_kind = TOKEN_RBRACKET
+        elseif t.kind == TOKEN_LPAREN
+            push!(parts, "(")
+            inner = read_balanced!(lex, TOKEN_LPAREN, TOKEN_RPAREN)
+            push!(parts, inner)
+            push!(parts, ")")
+            prev_kind = TOKEN_RPAREN
+        else
+            push!(parts, val)
+            prev_kind = t.kind
+        end
     end
-    for command in commands[first_constraint:end]
-        push!(model.constraints, parse_constraint(command))
+    return join(parts)
+end
+
+
+"""
+    _parse_param!(lex::Lexer, model::JuMPConverter.Model)
+
+Parse: `param name [{axes}] [integer] [binary] [default expr] [check...] ;`
+"""
+function _parse_param!(lex::Lexer, model::JuMPConverter.Model)
+    name = expect!(lex, TOKEN_IDENTIFIER).value
+    axes = _read_axes!(lex)
+    default = nothing
+    integer = false
+    # Parse optional qualifiers until semicolon
+    while peek(lex).kind != TOKEN_SEMICOLON && peek(lex).kind != TOKEN_EOF
+        t = peek(lex)
+        if t.kind == TOKEN_IDENTIFIER && t.value == "default"
+            read_token!(lex)
+            default = parse(Float64, _read_expression!(lex, (TOKEN_SEMICOLON,)))
+        elseif t.kind == TOKEN_IDENTIFIER && t.value == "integer"
+            read_token!(lex)
+            integer = true
+        elseif t.kind == TOKEN_IDENTIFIER && t.value == "binary"
+            read_token!(lex)
+            # binary param (rare, treat as integer)
+            integer = true
+        elseif t.kind == TOKEN_IDENTIFIER && t.value == "symbolic"
+            read_token!(lex)
+        elseif t.kind == TOKEN_GEQ || t.kind == TOKEN_LEQ || t.kind == TOKEN_GT || t.kind == TOKEN_LT
+            # param check constraint like `param T > 0;` — skip
+            read_token!(lex)
+            _read_expression!(lex, (TOKEN_SEMICOLON, TOKEN_COMMA))
+            if peek(lex).kind == TOKEN_COMMA
+                read_token!(lex)
+            end
+        elseif t.kind == TOKEN_EQ
+            # Computed param: `param total = expr;` — read expression
+            read_token!(lex)
+            _read_expression!(lex, (TOKEN_SEMICOLON,))
+        elseif t.kind == TOKEN_IDENTIFIER && t.value == "in"
+            # `param name symbolic in SET;` — skip
+            read_token!(lex)
+            _read_expression!(lex, (TOKEN_SEMICOLON,))
+        elseif t.kind == TOKEN_COMMA
+            read_token!(lex)
+        else
+            # Unknown qualifier — skip token
+            read_token!(lex)
+        end
+    end
+    push!(model, JuMPConverter.Parameter(; name, axes, integer, default))
+    return
+end
+
+"""
+    _parse_var!(lex::Lexer, model::JuMPConverter.Model)
+
+Parse: `var name [{axes}] [>= lb] [<= ub] [binary] [integer] [:= init] ;`
+"""
+function _parse_var!(lex::Lexer, model::JuMPConverter.Model)
+    name = expect!(lex, TOKEN_IDENTIFIER).value
+    axes = _read_axes!(lex)
+    lower_bound = nothing
+    upper_bound = nothing
+    fixed_value = nothing
+    binary = false
+    integer = false
+    while peek(lex).kind != TOKEN_SEMICOLON && peek(lex).kind != TOKEN_EOF
+        t = peek(lex)
+        if t.kind == TOKEN_GEQ
+            read_token!(lex)
+            lower_bound = _read_expression!(
+                lex,
+                (TOKEN_SEMICOLON, TOKEN_COMMA),
+            )
+        elseif t.kind == TOKEN_LEQ
+            read_token!(lex)
+            upper_bound = _read_expression!(
+                lex,
+                (TOKEN_SEMICOLON, TOKEN_COMMA),
+            )
+        elseif t.kind == TOKEN_IDENTIFIER && t.value == "binary"
+            read_token!(lex)
+            binary = true
+        elseif t.kind == TOKEN_IDENTIFIER && t.value == "integer"
+            read_token!(lex)
+            integer = true
+        elseif t.kind == TOKEN_ASSIGN
+            # Initial value: `:= expr` — skip for now
+            read_token!(lex)
+            _read_expression!(lex, (TOKEN_SEMICOLON, TOKEN_COMMA))
+        elseif t.kind == TOKEN_IDENTIFIER && t.value == "default"
+            read_token!(lex)
+            _read_expression!(lex, (TOKEN_SEMICOLON, TOKEN_COMMA))
+        elseif t.kind == TOKEN_EQ
+            read_token!(lex)
+            # Defined variable: `var Total = expr;`
+            _read_expression!(lex, (TOKEN_SEMICOLON,))
+        elseif t.kind == TOKEN_COMMA
+            read_token!(lex)
+        else
+            read_token!(lex)
+        end
+    end
+    push!(
+        model,
+        JuMPConverter.Variable(;
+            name,
+            axes,
+            lower_bound,
+            upper_bound,
+            fixed_value,
+            binary,
+            integer,
+        ),
+    )
+    return
+end
+
+"""
+    _parse_set!(lex::Lexer, model::JuMPConverter.Model)
+
+Parse: `set name [within ...] [= ...] [dimen n] [ordered] ;`
+Skip set declarations (not stored in model currently).
+"""
+function _parse_set!(lex::Lexer)
+    # Just consume everything until semicolon
+    while peek(lex).kind != TOKEN_SEMICOLON && peek(lex).kind != TOKEN_EOF
+        read_token!(lex)
+    end
+    return
+end
+
+"""
+    _parse_objective!(lex::Lexer, model::JuMPConverter.Model, sense)
+
+Parse: `maximize|minimize name : expression ;`
+"""
+function _parse_objective!(
+    lex::Lexer,
+    model::JuMPConverter.Model,
+    sense::MOI.OptimizationSense,
+)
+    name = expect!(lex, TOKEN_IDENTIFIER).value
+    expect!(lex, TOKEN_COLON)
+    expression = _read_expression!(lex, (TOKEN_SEMICOLON,))
+    expression = clean_expression(expression)
+    model.objective = JuMPConverter.Objective(; name, sense, expression)
+    return
+end
+
+"""
+    _parse_constraint!(lex::Lexer, model::JuMPConverter.Model)
+
+Parse: `name [{axes}] : expression ;`
+"""
+function _parse_constraint!(lex::Lexer, model::JuMPConverter.Model)
+    name = expect!(lex, TOKEN_IDENTIFIER).value
+    axes = _read_axes!(lex)
+    expect!(lex, TOKEN_COLON)
+    expression = _read_expression!(lex, (TOKEN_SEMICOLON,))
+    expression = clean_expression(expression)
+    push!(model, JuMPConverter.Constraint(; name, axes, expression))
+    return
+end
+
+function _is_keyword(value::AbstractString)
+    return value in (
+        "param",
+        "var",
+        "set",
+        "maximize",
+        "minimize",
+        "subject",
+        "check",
+        "data",
+        "display",
+        "option",
+        "model",
+        "solve",
+        "fix",
+        "let",
+        "drop",
+        "restore",
+        "problem",
+        "environ",
+        "suffix",
+        "redeclare",
+    )
+end
+
+"""
+    parse_model(mod::AbstractString)
+
+Parse an AMPL `.mod` file into a `JuMPConverter.Model`.
+Uses a tokenizer so that newlines are treated as spaces.
+"""
+function parse_model(mod::AbstractString)
+    model = JuMPConverter.Model()
+    lex = Lexer(mod)
+    while peek(lex).kind != TOKEN_EOF
+        t = peek(lex)
+        if t.kind == TOKEN_SEMICOLON
+            read_token!(lex)
+            continue
+        end
+        if t.kind != TOKEN_IDENTIFIER
+            read_token!(lex)
+            continue
+        end
+        kw = t.value
+        if kw == "param"
+            read_token!(lex)
+            _parse_param!(lex, model)
+        elseif kw == "var"
+            read_token!(lex)
+            _parse_var!(lex, model)
+        elseif kw == "set"
+            read_token!(lex)
+            _parse_set!(lex)
+        elseif kw == "maximize"
+            read_token!(lex)
+            _parse_objective!(lex, model, MOI.MAX_SENSE)
+        elseif kw == "minimize"
+            read_token!(lex)
+            _parse_objective!(lex, model, MOI.MIN_SENSE)
+        elseif kw == "subject"
+            read_token!(lex)
+            # Expect "to"
+            t2 = peek(lex)
+            if t2.kind == TOKEN_IDENTIFIER && t2.value == "to"
+                read_token!(lex)
+            end
+            # Parse first constraint if on same line (after "subject to")
+            if peek(lex).kind == TOKEN_IDENTIFIER &&
+               !_is_keyword(peek(lex).value)
+                _parse_constraint!(lex, model)
+            end
+        elseif kw == "check"
+            read_token!(lex)
+            # Skip check statements
+            _read_expression!(lex, (TOKEN_SEMICOLON,))
+        elseif _is_keyword(kw)
+            # Other keywords: skip until semicolon
+            read_token!(lex)
+            while peek(lex).kind != TOKEN_SEMICOLON &&
+                peek(lex).kind != TOKEN_EOF
+                read_token!(lex)
+            end
+        else
+            # Not a keyword — must be a constraint name
+            _parse_constraint!(lex, model)
+        end
+        # Consume trailing semicolon if present
+        if peek(lex).kind == TOKEN_SEMICOLON
+            read_token!(lex)
+        end
     end
     return model
 end
@@ -124,9 +375,8 @@ function read_model(path::AbstractString)
     return parse_model(read(path, String))
 end
 
-# TODO write a proper parser
 function clean_expression(expr::AbstractString)
-    expr = replace(expr, "complements" => "⟂")
+    expr = replace(expr, "complements" => "\u27c2")
     # 2./3 -> 2. / 3 otherwise Julia says it's ambiguous with broadcast
     return replace(expr, "./" => ". /")
 end
