@@ -256,8 +256,10 @@ function test_multi_column_2d()
     """)
     @test haskey(data, "C")
     @test haskey(data, "R")
-    @test size(data["C"]) == (2, 2) || data["C"] isa JuMP.Containers.SparseAxisArray
-    @test size(data["R"]) == (2, 2) || data["R"] isa JuMP.Containers.SparseAxisArray
+    @test size(data["C"]) == (2, 2) ||
+          data["C"] isa JuMP.Containers.SparseAxisArray
+    @test size(data["R"]) == (2, 2) ||
+          data["R"] isa JuMP.Containers.SparseAxisArray
     return
 end
 
@@ -328,7 +330,9 @@ function test_set_integers()
 end
 
 function test_set_strings()
-    data = JuMPConverter.AMPL.parse_ampl_dat("set CITIES := Seattle Denver Chicago;")
+    data = JuMPConverter.AMPL.parse_ampl_dat(
+        "set CITIES := Seattle Denver Chicago;",
+    )
     @test data["CITIES"] == ["Seattle", "Denver", "Chicago"]
     return
 end

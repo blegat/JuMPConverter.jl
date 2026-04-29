@@ -42,7 +42,8 @@ function test_full_elec_pricing()
     model = JuMPConverter.AMPL.read_model(path)
     # Parameters (S, W, H, X, rho, beta, alpha, E, C, R, polyX)
     @test length(model.parameters) == 11
-    for name in ["S", "W", "H", "X", "rho", "beta", "alpha", "E", "C", "R", "polyX"]
+    for name in
+        ["S", "W", "H", "X", "rho", "beta", "alpha", "E", "C", "R", "polyX"]
         @test haskey(model.parameters, name)
     end
     @test model.parameters["S"].integer
