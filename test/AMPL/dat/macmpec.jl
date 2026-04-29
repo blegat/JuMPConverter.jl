@@ -2,23 +2,17 @@ using Test
 import MacMPEC
 import JuMPConverter
 
+function _mod_path(p::MacMPEC.Problem)
+    return joinpath(
+        dirname(dirname(pathof(MacMPEC))), "data", "problems", p.mod_file
+    )
+end
+
 @testset "$name" for name in MacMPEC.list()
-    if startswith(name, "incid-set") ||
-       startswith(name, "nash") ||
-       startswith(name, "pack-comp") ||
-       startswith(name, "pack-rig")
-        continue
-    end
-    if startswith(name, "flp4")
-        break
-    end
-    if name in ["bem-milanc30-s"]
-        continue
-    end
     problem = MacMPEC.problem(name)
     path = MacMPEC.dat_path(problem)
-    if !isnothing(path)
-        data = JuMPConverter.AMPL.read_ampl_dat(path)
-        @test data isa Dict{String}
-    end
+    isnothing(path) && continue
+    model = JuMPConverter.AMPL.read_model(_mod_path(problem))
+    data = JuMPConverter.AMPL.read_dat(path, model)
+    @test data isa Dict{String}
 end
