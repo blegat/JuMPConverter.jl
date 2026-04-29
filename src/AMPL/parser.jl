@@ -772,8 +772,8 @@ function _dat_parse_multi_column!(
 )
     col_names = String[]
     while peek(lex).kind != TOKEN_ASSIGN &&
-        peek(lex).kind != TOKEN_SEMICOLON &&
-        peek(lex).kind != TOKEN_EOF
+              peek(lex).kind != TOKEN_SEMICOLON &&
+              peek(lex).kind != TOKEN_EOF
         t = read_token!(lex)
         if t.kind == TOKEN_IDENTIFIER || t.kind == TOKEN_NUMBER
             push!(col_names, t.value)
@@ -828,17 +828,15 @@ function _dat_parse_multi_column!(
         num_indices = 1
     end
     row_size = num_indices + num_cols
-    all_ints = all(
-        i -> all_values[i] isa Int,
-        1:min(num_indices, length(all_values)),
-    )
+    all_ints =
+        all(i -> all_values[i] isa Int, 1:min(num_indices, length(all_values)))
     IndexType = if all_ints
         NTuple{num_indices,Int}
     else
         @assert num_indices == 1
         String
     end
-    cols = Any["index" => IndexType[]]
+    cols = Any["index"=>IndexType[]]
     for col in col_names
         push!(cols, col => Union{Float64,Missing}[])
     end
@@ -872,11 +870,7 @@ end
 Parse slice notation: `param E [*,*,1]: col1 col2 := ...`
 Handles 3D arrays stored slice-by-slice.
 """
-function _dat_parse_slice!(
-    lex::Lexer,
-    data::Dict{String,Any},
-    name::String,
-)
+function _dat_parse_slice!(lex::Lexer, data::Dict{String,Any}, name::String)
     arr_data = Dict{Vector{Int},Union{Float64,Missing}}()
     dim_sizes = zeros(Int, 3)  # Will be expanded if needed
     # Parse all slices
@@ -899,8 +893,8 @@ function _dat_parse_slice!(
         expect!(lex, TOKEN_COLON)
         col_indices = Int[]
         while peek(lex).kind != TOKEN_ASSIGN &&
-            peek(lex).kind != TOKEN_SEMICOLON &&
-            peek(lex).kind != TOKEN_EOF
+                  peek(lex).kind != TOKEN_SEMICOLON &&
+                  peek(lex).kind != TOKEN_EOF
             t = read_token!(lex)
             if t.kind == TOKEN_NUMBER
                 push!(col_indices, parse(Int, t.value))
@@ -910,16 +904,19 @@ function _dat_parse_slice!(
             read_token!(lex)
         end
         num_cols = length(col_indices)
-        dim_sizes[2] = max(dim_sizes[2], isempty(col_indices) ? 0 : maximum(col_indices))
+        dim_sizes[2] =
+            max(dim_sizes[2], isempty(col_indices) ? 0 : maximum(col_indices))
         # Read data rows until next [ or ;
         while peek(lex).kind != TOKEN_LBRACKET &&
-            peek(lex).kind != TOKEN_SEMICOLON &&
-            peek(lex).kind != TOKEN_EOF
+                  peek(lex).kind != TOKEN_SEMICOLON &&
+                  peek(lex).kind != TOKEN_EOF
             t = peek(lex)
             if t.kind == TOKEN_NUMBER || t.kind == TOKEN_MINUS
                 # Read row: row_idx val1 val2 ...
                 row_idx_val = _read_dat_value!(lex)
-                row_idx = row_idx_val isa Int ? row_idx_val : parse(Int, string(row_idx_val))
+                row_idx =
+                    row_idx_val isa Int ? row_idx_val :
+                    parse(Int, string(row_idx_val))
                 dim_sizes[1] = max(dim_sizes[1], row_idx)
                 for w_idx in col_indices
                     val = _read_dat_value!(lex)

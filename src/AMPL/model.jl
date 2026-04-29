@@ -34,7 +34,7 @@ function _split_condition(s::AbstractString)
     if last_colon == 0
         return strip(s), ""
     end
-    return strip(s[1:last_colon-1]), strip(s[last_colon+1:end])
+    return strip(s[1:(last_colon-1)]), strip(s[(last_colon+1):end])
 end
 
 function _split_axes(s::AbstractString)
@@ -48,7 +48,7 @@ function _split_axes(s::AbstractString)
         elseif c in ('}', ']', ')')
             depth -= 1
         elseif c == ',' && depth == 0
-            push!(parts, strip(s[start:i-1]))
+            push!(parts, strip(s[start:(i-1)]))
             start = i + 1
         end
     end
@@ -112,7 +112,6 @@ function _read_expression!(lex::Lexer, stops::NTuple{N,TokenKind}) where {N}
     return join(parts)
 end
 
-
 """
     _parse_param!(lex::Lexer, model::JuMPConverter.Model)
 
@@ -138,7 +137,10 @@ function _parse_param!(lex::Lexer, model::JuMPConverter.Model)
             integer = true
         elseif t.kind == TOKEN_IDENTIFIER && t.value == "symbolic"
             read_token!(lex)
-        elseif t.kind == TOKEN_GEQ || t.kind == TOKEN_LEQ || t.kind == TOKEN_GT || t.kind == TOKEN_LT
+        elseif t.kind == TOKEN_GEQ ||
+               t.kind == TOKEN_LEQ ||
+               t.kind == TOKEN_GT ||
+               t.kind == TOKEN_LT
             # param check constraint like `param T > 0;` — skip
             read_token!(lex)
             _read_expression!(lex, (TOKEN_SEMICOLON, TOKEN_COMMA))
@@ -181,16 +183,10 @@ function _parse_var!(lex::Lexer, model::JuMPConverter.Model)
         t = peek(lex)
         if t.kind == TOKEN_GEQ
             read_token!(lex)
-            lower_bound = _read_expression!(
-                lex,
-                (TOKEN_SEMICOLON, TOKEN_COMMA),
-            )
+            lower_bound = _read_expression!(lex, (TOKEN_SEMICOLON, TOKEN_COMMA))
         elseif t.kind == TOKEN_LEQ
             read_token!(lex)
-            upper_bound = _read_expression!(
-                lex,
-                (TOKEN_SEMICOLON, TOKEN_COMMA),
-            )
+            upper_bound = _read_expression!(lex, (TOKEN_SEMICOLON, TOKEN_COMMA))
         elseif t.kind == TOKEN_IDENTIFIER && t.value == "binary"
             read_token!(lex)
             binary = true

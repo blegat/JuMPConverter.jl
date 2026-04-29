@@ -101,7 +101,7 @@ function _read_number!(lex::Lexer)
             break
         end
     end
-    return Token(TOKEN_NUMBER, lex.input[start:lex.pos-1])
+    return Token(TOKEN_NUMBER, lex.input[start:(lex.pos-1)])
 end
 
 function _read_identifier!(lex::Lexer)
@@ -114,7 +114,7 @@ function _read_identifier!(lex::Lexer)
             break
         end
     end
-    return Token(TOKEN_IDENTIFIER, lex.input[start:lex.pos-1])
+    return Token(TOKEN_IDENTIFIER, lex.input[start:(lex.pos-1)])
 end
 
 function _next_token!(lex::Lexer)
@@ -342,10 +342,32 @@ function _needs_space(prev::Union{Nothing,TokenKind}, curr::TokenKind)
         return true
     end
     # Space around comparison and arithmetic operators
-    if curr in (TOKEN_GEQ, TOKEN_LEQ, TOKEN_EQ, TOKEN_NEQ, TOKEN_PLUS, TOKEN_MINUS, TOKEN_STAR, TOKEN_SLASH, TOKEN_CARET, TOKEN_STARSTAR)
+    if curr in (
+        TOKEN_GEQ,
+        TOKEN_LEQ,
+        TOKEN_EQ,
+        TOKEN_NEQ,
+        TOKEN_PLUS,
+        TOKEN_MINUS,
+        TOKEN_STAR,
+        TOKEN_SLASH,
+        TOKEN_CARET,
+        TOKEN_STARSTAR,
+    )
         return true
     end
-    if prev in (TOKEN_GEQ, TOKEN_LEQ, TOKEN_EQ, TOKEN_NEQ, TOKEN_PLUS, TOKEN_MINUS, TOKEN_STAR, TOKEN_SLASH, TOKEN_CARET, TOKEN_STARSTAR)
+    if prev in (
+        TOKEN_GEQ,
+        TOKEN_LEQ,
+        TOKEN_EQ,
+        TOKEN_NEQ,
+        TOKEN_PLUS,
+        TOKEN_MINUS,
+        TOKEN_STAR,
+        TOKEN_SLASH,
+        TOKEN_CARET,
+        TOKEN_STARSTAR,
+    )
         return true
     end
     return false
