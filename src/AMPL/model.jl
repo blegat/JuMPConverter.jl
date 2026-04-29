@@ -57,13 +57,24 @@ function _split_axes(s::AbstractString)
 end
 
 function _parse_axe(s::AbstractString)
-    sp = split(strip(s))
-    if length(sp) == 1
-        return JuMPConverter.Axe(sp[1], sp[1])
-    else
-        @assert sp[2] == "in"
-        return JuMPConverter.Axe(sp[1], join(sp[3:end]))
+    s = strip(s)
+    # Find " in " at depth 0, handling tuple indices like "(i, j) in S"
+    depth = 0
+    n = length(s)
+    for i in 1:n
+        c = s[i]
+        if c in ('(', '{', '[')
+            depth += 1
+        elseif c in (')', '}', ']')
+            depth -= 1
+        elseif c == ' ' && depth == 0 && i + 3 <= n && s[i:i+3] == " in "
+            name = strip(s[1:i-1])
+            set = strip(s[i+4:end])
+            return JuMPConverter.Axe(name, isempty(set) ? name : set)
+        end
     end
+    # No "in" found at depth 0 — bare set or range reference
+    return JuMPConverter.Axe(s, s)
 end
 
 """

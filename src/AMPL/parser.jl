@@ -89,14 +89,21 @@ end
 function df_to_container!(data::Dict{String,Any}, df::DataFrames.DataFrame)
     df = sort(df, :index, by = reverse)
     ax = _axes(df.index)
-    # Store each column as a separate parameter
     for col in DataFrames.names(df)
-        if col == "index"
-            continue
-        end
+        col == "index" && continue
         vals = df[!, col]
         sz = length.(ax)
-        container = if length(vals) < prod(sz) || any(ismissing, vals)
+        container = if df.index isa Vector{String}
+            if any(ismissing, vals)
+                dict = OrderedCollections.OrderedDict{Tuple{String},Float64}()
+                for i in axes(df, 1)
+                    !ismissing(vals[i]) && (dict[(df.index[i],)] = Float64(vals[i]))
+                end
+                JuMP.Containers.SparseAxisArray(dict)
+            else
+                JuMP.Containers.DenseAxisArray(convert(Vector{Float64}, vals), ax...)
+            end
+        elseif length(vals) < prod(sz) || any(ismissing, vals)
             dict = OrderedCollections.OrderedDict{NTuple{length(ax),Int},Float64}()
             for i in axes(df, 1)
                 if !ismissing(vals[i])
@@ -110,7 +117,6 @@ function df_to_container!(data::Dict{String,Any}, df::DataFrames.DataFrame)
         end
         data[col] = container
     end
-
     return
 end
 
@@ -239,6 +245,24 @@ function _dat_parse_param_values!(
     model::Union{Nothing,JuMPConverter.Model},
     name::String,
 )
+    # Handle set literal: let SS := {18, 20, 22, ...};
+    if peek(lex).kind == TOKEN_LBRACE
+        read_token!(lex)  # consume {
+        values = Any[]
+        while peek(lex).kind != TOKEN_RBRACE && peek(lex).kind != TOKEN_EOF
+            t = peek(lex)
+            if t.kind == TOKEN_COMMA
+                read_token!(lex)
+                continue
+            end
+            push!(values, _read_dat_value!(lex))
+        end
+        if peek(lex).kind == TOKEN_RBRACE
+            read_token!(lex)  # consume }
+        end
+        data[name] = _convert_to_concrete_eltype(values)
+        return
+    end
     ndims = isnothing(model) ? nothing : _param_ndims(model, name)
     values = Any[]
     while peek(lex).kind != TOKEN_SEMICOLON && peek(lex).kind != TOKEN_EOF
@@ -280,6 +304,7 @@ end
 
 """
 Parse multi-column table: `: col1 col2 := idx v1 v2 ...`
+Handles multiple column sections (`: c1 c2 := data : c3 c4 := data`).
 """
 function _dat_parse_multi_column!(
     lex::Lexer,
@@ -287,129 +312,170 @@ function _dat_parse_multi_column!(
     model::Union{Nothing,JuMPConverter.Model},
     prefix_name::Union{Nothing,String},
 )
-    col_names = String[]
-    while peek(lex).kind != TOKEN_ASSIGN &&
-              peek(lex).kind != TOKEN_SEMICOLON &&
-              peek(lex).kind != TOKEN_EOF
-        t = read_token!(lex)
-        if t.kind == TOKEN_IDENTIFIER || t.kind == TOKEN_NUMBER
-            push!(col_names, t.value)
+    # Collect sections as (col_names, flat_values) pairs
+    sections = Tuple{Vector{String},Vector{Any}}[]
+
+    while true
+        # Read column names for this section until :=
+        section_cols = String[]
+        while peek(lex).kind != TOKEN_ASSIGN &&
+                  peek(lex).kind != TOKEN_SEMICOLON &&
+                  peek(lex).kind != TOKEN_EOF
+            t = read_token!(lex)
+            if t.kind == TOKEN_IDENTIFIER || t.kind == TOKEN_NUMBER
+                push!(section_cols, t.value)
+            end
         end
-    end
-    if peek(lex).kind == TOKEN_ASSIGN
-        read_token!(lex)
-    end
-    num_cols = length(col_names)
-    if num_cols == 0
-        return
-    end
-    all_values = Any[]
-    while peek(lex).kind != TOKEN_SEMICOLON && peek(lex).kind != TOKEN_EOF
-        t = peek(lex)
-        if t.kind == TOKEN_COMMA
-            read_token!(lex)
-            continue
-        elseif t.kind == TOKEN_COLON
-            read_token!(lex)
-            continue
-        end
-        push!(all_values, _read_dat_value!(lex))
-    end
-    if isempty(all_values)
-        return
-    end
-    # Determine number of index columns
-    num_indices = nothing
-    if !isnothing(model) && !isnothing(prefix_name)
-        nd = _param_ndims(model, prefix_name)
-        if !isnothing(nd) && nd > 0
-            # For named tables, column headers provide one dimension
-            num_indices = nd - 1
-        end
-    end
-    if isnothing(num_indices) && !isnothing(model)
-        nd = _param_ndims(model, col_names[1])
-        if !isnothing(nd) && nd > 0
-            num_indices = nd
-        end
-    end
-    if isnothing(num_indices)
-        for ni in 1:3
-            rs = ni + num_cols
-            if length(all_values) % rs != 0
+        peek(lex).kind != TOKEN_ASSIGN && break
+        read_token!(lex)  # consume :=
+        isempty(section_cols) && continue
+
+        # Collect flat values for this section until : or ;
+        section_vals = Any[]
+        while peek(lex).kind != TOKEN_SEMICOLON && peek(lex).kind != TOKEN_EOF
+            t = peek(lex)
+            if t.kind == TOKEN_COLON
+                read_token!(lex)  # consume : → next section
+                break
+            elseif t.kind == TOKEN_COMMA
+                read_token!(lex)
                 continue
             end
-            # Validate that all index positions are integers
-            indices_ok = true
-            for row_start in 1:rs:length(all_values)
-                for j in 0:(ni-1)
-                    if !(all_values[row_start+j] isa Int)
-                        indices_ok = false
-                        break
-                    end
-                end
-                indices_ok || break
-            end
-            if indices_ok
-                num_indices = ni
-                break
-            end
+            push!(section_vals, _read_dat_value!(lex))
+        end
+        push!(sections, (section_cols, section_vals))
+        peek(lex).kind == TOKEN_SEMICOLON && break
+    end
+
+    isempty(sections) && return
+
+    # Collect all column names in order
+    all_col_names = String[]
+    for (cols, _) in sections
+        for col in cols
+            col ∉ all_col_names && push!(all_col_names, col)
         end
     end
-    if isnothing(num_indices)
-        num_indices = 1
+
+    # Determine num_indices (row index dimensions)
+    num_indices = _determine_num_indices(model, prefix_name, all_col_names, sections)
+
+    # Parse rows from each section
+    # Key type: NTuple{num_indices,Int} or String
+    # Determine if all row indices are ints by scanning first section
+    first_cols, first_vals = sections[1]
+    row_size_1 = num_indices + length(first_cols)
+    all_ints = row_size_1 <= length(first_vals) &&
+               all(j -> first_vals[j] isa Int, 1:num_indices)
+
+    row_dict = OrderedCollections.OrderedDict{Any,Dict{String,Union{Float64,Missing}}}()
+
+    for (section_cols, section_vals) in sections
+        row_size = num_indices + length(section_cols)
+        i = 1
+        while i + row_size - 1 <= length(section_vals)
+            idx = if all_ints
+                ntuple(j -> section_vals[i+j-1]::Int, num_indices)
+            else
+                string(section_vals[i])
+            end
+            if !haskey(row_dict, idx)
+                row_dict[idx] = Dict{String,Union{Float64,Missing}}()
+            end
+            for (j, col) in enumerate(section_cols)
+                v = section_vals[i+num_indices+j-1]
+                row_dict[idx][col] = v isa Missing ? missing : Float64(v)
+            end
+            i += row_size
+        end
     end
-    row_size = num_indices + num_cols
-    all_ints =
-        all(i -> all_values[i] isa Int, 1:min(num_indices, length(all_values)))
-    IndexType = if all_ints
-        NTuple{num_indices,Int}
-    else
-        @assert num_indices == 1
-        String
-    end
-    cols = Any["index"=>IndexType[]]
-    for col in col_names
+
+    isempty(row_dict) && return
+
+    IndexType = all_ints ? NTuple{num_indices,Int} : String
+    cols = Any["index" => IndexType[]]
+    for col in all_col_names
         push!(cols, col => Union{Float64,Missing}[])
     end
     df = DataFrames.DataFrame(cols)
-    i = 1
-    while i + row_size - 1 <= length(all_values)
-        idx = if all_ints
-            ntuple(j -> all_values[i+j-1]::Int, num_indices)
-        else
-            string(all_values[i])
+
+    for (idx, col_vals) in row_dict
+        row = Any[idx]
+        for col in all_col_names
+            push!(row, get(col_vals, col, missing))
         end
-        vals = Any[idx]
-        for j in 1:num_cols
-            v = all_values[i+num_indices+j-1]
-            push!(vals, v isa Missing ? missing : Float64(v))
-        end
-        push!(df, vals)
-        i += row_size
+        push!(df, row)
     end
+
     if isnothing(prefix_name)
-        # Unnamed: each column becomes a separate parameter
         df_to_container!(data, df)
     else
-        # Named: store as DataFrame under the prefix name
         data[prefix_name] = df
     end
     return
 end
 
+function _determine_num_indices(
+    model::Union{Nothing,JuMPConverter.Model},
+    prefix_name::Union{Nothing,String},
+    all_col_names::Vector{String},
+    sections::Vector{Tuple{Vector{String},Vector{Any}}},
+)
+    # From model info (most reliable)
+    if !isnothing(model) && !isnothing(prefix_name)
+        nd = _param_ndims(model, prefix_name)
+        if !isnothing(nd) && nd > 0
+            return nd - 1  # named: col headers provide one dimension
+        end
+    end
+    if !isnothing(model) && !isempty(all_col_names)
+        nd = _param_ndims(model, all_col_names[1])
+        if !isnothing(nd) && nd > 0
+            return nd  # unnamed: all dims come from row indices
+        end
+    end
+    # Heuristic: try num_indices 1, 2, 3 against first section
+    if !isempty(sections)
+        first_cols, first_vals = sections[1]
+        num_cols = length(first_cols)
+        for ni in 1:3
+            rs = ni + num_cols
+            (isempty(first_vals) || length(first_vals) % rs != 0) && continue
+            ok = true
+            for row_start in 1:rs:length(first_vals)
+                for k in 0:(ni-1)
+                    if !(first_vals[row_start+k] isa Int)
+                        ok = false
+                        break
+                    end
+                end
+                ok || break
+            end
+            ok && return ni
+        end
+    end
+    return 1
+end
+
 """
 Parse slice notation: `param E [*,*,1]: col1 col2 := ...`
 Handles 3D arrays stored slice-by-slice.
+Also handles `let x[1] := val` (subscript assignment) by skipping.
 """
 function _dat_parse_slice!(lex::Lexer, data::Dict{String,Any}, name::String)
     arr_data = Dict{Vector{Int},Union{Float64,Missing}}()
     dim_sizes = zeros(Int, 3)  # Will be expanded if needed
     # Parse all slices
     while true
-        # Read [*,*,h] bracket
+        # Read [*,*,h] or [subscript] bracket
         expect!(lex, TOKEN_LBRACKET)
         bracket_content = read_balanced!(lex, TOKEN_LBRACKET, TOKEN_RBRACKET)
+        # If followed by := it's a subscript assignment (e.g. let x[1] := 0) — skip
+        if peek(lex).kind == TOKEN_ASSIGN
+            read_token!(lex)  # consume :=
+            _read_dat_value!(lex)  # skip value
+            return
+        end
         # Extract the fixed index from the bracket (last number)
         m = match(r"(\d+)\s*$", bracket_content)
         if isnothing(m)
@@ -512,7 +578,15 @@ function parse_dat(
             _dat_parse_set!(lex, data)
         elseif kw == "let"
             read_token!(lex)
-            _dat_parse_param!(lex, data, model)
+            if peek(lex).kind == TOKEN_LBRACE
+                # Indexed let: let{s in S} name[idx] := expr; — skip
+                while peek(lex).kind != TOKEN_SEMICOLON &&
+                          peek(lex).kind != TOKEN_EOF
+                    read_token!(lex)
+                end
+            else
+                _dat_parse_param!(lex, data, model)
+            end
         elseif kw == "fix"
             read_token!(lex)
             @warn("fix is not supported yet")
