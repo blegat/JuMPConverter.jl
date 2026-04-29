@@ -23,17 +23,12 @@ end
 # This helper calls the future API: parse_dat(dat_text, model)
 # where `model` comes from parse_model(mod_text).
 # Until the new API exists, we fall back to the current
-# parse_ampl_dat(dat_text) which ignores model info.
+# parse_dat(dat_text) which ignores model info.
 # ============================================================
 
 function parse_dat(dat::String, mod::String)
-    if isdefined(JuMPConverter.AMPL, :parse_dat)
-        model = JuMPConverter.AMPL.parse_model(mod)
-        return JuMPConverter.AMPL.parse_dat(dat, model)
-    else
-        # Fallback: current API ignores model info
-        return JuMPConverter.AMPL.parse_ampl_dat(dat)
-    end
+    model = JuMPConverter.AMPL.parse_model(mod)
+    return JuMPConverter.AMPL.parse_dat(dat, model)
 end
 
 # ============================================================
@@ -41,13 +36,13 @@ end
 # ============================================================
 
 function test_comment_only()
-    data = JuMPConverter.AMPL.parse_ampl_dat("# just a comment\nparam n := 5;")
+    data = JuMPConverter.AMPL.parse_dat("# just a comment\nparam n := 5;")
     @test data["n"] == 5
     return
 end
 
 function test_comment_before_param()
-    data = JuMPConverter.AMPL.parse_ampl_dat("""
+    data = JuMPConverter.AMPL.parse_dat("""
     # This is a comment
     param n := 5;
     """)
@@ -56,7 +51,7 @@ function test_comment_before_param()
 end
 
 function test_multiple_comments()
-    data = JuMPConverter.AMPL.parse_ampl_dat("""
+    data = JuMPConverter.AMPL.parse_dat("""
     # Comment 1
     # Comment 2
     param n := 5;
@@ -144,33 +139,33 @@ end
 # ============================================================
 
 function test_scalar_int()
-    data = JuMPConverter.AMPL.parse_ampl_dat("param S := 5;")
+    data = JuMPConverter.AMPL.parse_dat("param S := 5;")
     @test data["S"] == 5
     @test data["S"] isa Int
     return
 end
 
 function test_scalar_float()
-    data = JuMPConverter.AMPL.parse_ampl_dat("param pi := 3.14159;")
+    data = JuMPConverter.AMPL.parse_dat("param pi := 3.14159;")
     @test data["pi"] ≈ 3.14159
     @test data["pi"] isa Float64
     return
 end
 
 function test_scalar_negative()
-    data = JuMPConverter.AMPL.parse_ampl_dat("param x := -42;")
+    data = JuMPConverter.AMPL.parse_dat("param x := -42;")
     @test data["x"] == -42
     return
 end
 
 function test_scalar_scientific()
-    data = JuMPConverter.AMPL.parse_ampl_dat("param eps := 1e-7;")
+    data = JuMPConverter.AMPL.parse_dat("param eps := 1e-7;")
     @test data["eps"] ≈ 1e-7
     return
 end
 
 function test_multiple_scalars()
-    data = JuMPConverter.AMPL.parse_ampl_dat("""
+    data = JuMPConverter.AMPL.parse_dat("""
     param S := 5;
     param W := 4;
     param H := 3;
@@ -184,7 +179,7 @@ function test_multiple_scalars()
 end
 
 function test_multiple_scalars_one_line()
-    data = JuMPConverter.AMPL.parse_ampl_dat("param S := 5; param W := 4;")
+    data = JuMPConverter.AMPL.parse_dat("param S := 5; param W := 4;")
     @test data["S"] == 5
     @test data["W"] == 4
     return
@@ -195,7 +190,7 @@ end
 # ============================================================
 
 function test_1d_array()
-    data = JuMPConverter.AMPL.parse_ampl_dat("""
+    data = JuMPConverter.AMPL.parse_dat("""
     param rho :=
     1 0.323232
     2 0.161616
@@ -229,7 +224,7 @@ end
 # ============================================================
 
 function test_multi_column_1d()
-    data = JuMPConverter.AMPL.parse_ampl_dat("""
+    data = JuMPConverter.AMPL.parse_dat("""
     param
     :      rho       beta   alpha    :=
     1   0.323232    0.66667    0
@@ -246,7 +241,7 @@ function test_multi_column_1d()
 end
 
 function test_multi_column_2d()
-    data = JuMPConverter.AMPL.parse_ampl_dat("""
+    data = JuMPConverter.AMPL.parse_dat("""
     param
     :        C          R       :=
     1 1    84.812151    120.964401
@@ -268,7 +263,7 @@ end
 # ============================================================
 
 function test_2d_table()
-    data = JuMPConverter.AMPL.parse_ampl_dat("""
+    data = JuMPConverter.AMPL.parse_dat("""
     param cost: A B C :=
     1 10 20 30
     2 40 50 60;
@@ -282,7 +277,7 @@ end
 # ============================================================
 
 function test_3d_array_slices()
-    data = JuMPConverter.AMPL.parse_ampl_dat("""
+    data = JuMPConverter.AMPL.parse_dat("""
     param E [*,*,1]: 1 2 :=
     1 10 20
     2 30 40
@@ -306,7 +301,7 @@ end
 # ============================================================
 
 function test_dot_as_missing_1d()
-    data = JuMPConverter.AMPL.parse_ampl_dat("""
+    data = JuMPConverter.AMPL.parse_dat("""
     param
     :      rho    alpha    :=
     1   0.323232    0
@@ -324,13 +319,13 @@ end
 # ============================================================
 
 function test_set_integers()
-    data = JuMPConverter.AMPL.parse_ampl_dat("set S := 1 2 3 4 5;")
+    data = JuMPConverter.AMPL.parse_dat("set S := 1 2 3 4 5;")
     @test data["S"] == [1, 2, 3, 4, 5]
     return
 end
 
 function test_set_strings()
-    data = JuMPConverter.AMPL.parse_ampl_dat(
+    data = JuMPConverter.AMPL.parse_dat(
         "set CITIES := Seattle Denver Chicago;",
     )
     @test data["CITIES"] == ["Seattle", "Denver", "Chicago"]
@@ -338,7 +333,7 @@ function test_set_strings()
 end
 
 function test_set_comma_separated()
-    data = JuMPConverter.AMPL.parse_ampl_dat("set S := 1,2,3;")
+    data = JuMPConverter.AMPL.parse_dat("set S := 1,2,3;")
     @test length(data["S"]) == 3
     return
 end
@@ -348,14 +343,14 @@ end
 # ============================================================
 
 function test_semicolon_ends_statement()
-    data = JuMPConverter.AMPL.parse_ampl_dat("param a := 1; param b := 2;")
+    data = JuMPConverter.AMPL.parse_dat("param a := 1; param b := 2;")
     @test data["a"] == 1
     @test data["b"] == 2
     return
 end
 
 function test_trailing_whitespace_after_semicolon()
-    data = JuMPConverter.AMPL.parse_ampl_dat("param n := 42;   \n\n")
+    data = JuMPConverter.AMPL.parse_dat("param n := 42;   \n\n")
     @test data["n"] == 42
     return
 end
@@ -365,7 +360,7 @@ end
 # ============================================================
 
 function test_let_command()
-    data = JuMPConverter.AMPL.parse_ampl_dat("let x := 5;")
+    data = JuMPConverter.AMPL.parse_dat("let x := 5;")
     @test data["x"] == 5
     return
 end
@@ -376,7 +371,7 @@ end
 
 function test_example1_dat()
     path = joinpath(@__DIR__, "examples", "example1.dat")
-    data = JuMPConverter.AMPL.read_ampl_dat(path)
+    data = JuMPConverter.AMPL.read_dat(path)
     @test data["S"] == 5
     @test data["W"] == 4
     @test data["H"] == 3
