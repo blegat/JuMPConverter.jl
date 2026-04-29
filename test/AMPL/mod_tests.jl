@@ -1,0 +1,552 @@
+module TestModParsing
+
+using Test
+import JuMPConverter
+
+const MOI = JuMPConverter.MOI
+
+function runtests()
+    for name in names(@__MODULE__; all = true)
+        if startswith("$(name)", "test_")
+            @testset "$(name)" begin
+                getfield(@__MODULE__, name)()
+            end
+        end
+    end
+    return
+end
+
+# ============================================================
+# Expression cleaning (works independently of the parser)
+# ============================================================
+
+function test_clean_complements()
+    expr = JuMPConverter.AMPL.clean_expression("0 <= x complements y >= 0")
+    @test contains(expr, "\u27c2")
+    @test !contains(expr, "complements")
+    return
+end
+
+function test_clean_dot_slash()
+    expr = JuMPConverter.AMPL.clean_expression("2./beta")
+    @test contains(expr, ". /")
+    return
+end
+
+# ============================================================
+# Full model: elec_pricing (the one existing test that works)
+# ============================================================
+
+function test_full_elec_pricing()
+    path = joinpath(@__DIR__, "input", "elec_pricing.mod")
+    model = JuMPConverter.AMPL.read_model(path)
+    # Parameters (S, W, H, X, rho, beta, alpha, E, C, R, polyX)
+    @test length(model.parameters) == 11
+    for name in
+        ["S", "W", "H", "X", "rho", "beta", "alpha", "E", "C", "R", "polyX"]
+        @test haskey(model.parameters, name)
+    end
+    @test model.parameters["S"].integer
+    @test model.parameters["rho"].default == 0.0
+    @test model.parameters["E"].axes !== nothing
+    @test length(model.parameters["E"].axes.axes) == 3
+    # Variables
+    @test length(model.variables) == 4
+    for name in ["xx", "y", "mu", "eta"]
+        @test haskey(model.variables, name)
+    end
+    @test model.variables["xx"].lower_bound == "0"
+    @test model.variables["xx"].upper_bound == "1"
+    # Objective
+    @test model.objective !== nothing
+    @test model.objective.sense == MOI.MAX_SENSE
+    @test model.objective.name == "profit"
+    @test contains(model.objective.expression, "sum")
+    # Constraints
+    @test length(model.constraints) >= 5
+    # Check specific constraints
+    simplex = model.constraints[1]
+    @test simplex.name == "simplex"
+    @test simplex.axes !== nothing
+    # Check condition on testgeq
+    testgeq = model.constraints[2]
+    @test testgeq.name == "testgeq"
+    @test testgeq.axes.condition !== nothing
+    return
+end
+
+# ============================================================
+# Tests for desired parser behavior (currently broken)
+#
+# These document what the new parser should handle.
+# They use @test_broken or try/catch to avoid erroring.
+# ============================================================
+
+# --- Comments ---
+
+function test_comment_line()
+    # The current parser should handle # comments (it does strip them)
+    mod = """
+    # This is a comment
+    param S integer;
+    var x >= 0;
+    maximize obj: x;
+    subject to
+    c1 {i in 1..S}: x >= 0;
+    """
+    model = JuMPConverter.AMPL.parse_model(mod)
+    @test haskey(model.parameters, "S")
+    return
+end
+
+function test_comment_after_statement()
+    mod = """
+    param n integer; # integer count
+    param m integer;
+    var x >= 0;
+    maximize obj: x;
+    subject to
+    c1 {i in 1..n}: x >= 0;
+    """
+    model = JuMPConverter.AMPL.parse_model(mod)
+    @test haskey(model.parameters, "n")
+    @test haskey(model.parameters, "m")
+    return
+end
+
+# --- Whitespace handling ---
+# The current parser splits on ';' which is correct.
+# But `parse_parameter` can't handle bare `param n;` (no type/default).
+# These tests document what the new parser should handle.
+
+function test_scalar_param_bare()
+    # `param T;` with no integer/default qualifier
+    # Current parser crashes on split(rest, limit=2) when rest is just " T"
+    mod = """
+    param T;
+    var x >= 0;
+    maximize obj: x;
+    subject to
+    c1 {i in 1..T}: x >= 0;
+    """
+    try
+        model = JuMPConverter.AMPL.parse_model(mod)
+        @test haskey(model.parameters, "T")
+    catch
+        @test_broken false
+    end
+    return
+end
+
+function test_multiline_param()
+    # Newlines within a statement (before semicolon) should be treated as spaces
+    mod = """
+    param
+        n
+        integer;
+    var x >= 0;
+    maximize obj: x;
+    subject to
+    c1 {i in 1..n}: x >= 0;
+    """
+    try
+        model = JuMPConverter.AMPL.parse_model(mod)
+        @test haskey(model.parameters, "n")
+        @test model.parameters["n"].integer
+    catch
+        @test_broken false
+    end
+    return
+end
+
+function test_multiline_variable_bounds()
+    # Variable bounds split across lines
+    mod = """
+    param n integer;
+    var x {i in 1..n}
+        >= 0,
+        <= 1;
+    maximize obj: sum {i in 1..n} x[i];
+    subject to
+    c1 {i in 1..n}: x[i] >= 0;
+    """
+    try
+        model = JuMPConverter.AMPL.parse_model(mod)
+        @test haskey(model.variables, "x")
+        @test model.variables["x"].lower_bound == "0"
+        @test model.variables["x"].upper_bound == "1"
+    catch
+        @test_broken false
+    end
+    return
+end
+
+function test_multiline_objective()
+    mod = """
+    param n integer;
+    var x {i in 1..n} >= 0;
+    minimize cost:
+        sum {i in 1..n}
+            (x[i]);
+    subject to
+    c1 {i in 1..n}: x[i] <= 10;
+    """
+    try
+        model = JuMPConverter.AMPL.parse_model(mod)
+        @test model.objective !== nothing
+        @test model.objective.sense == MOI.MIN_SENSE
+    catch
+        @test_broken false
+    end
+    return
+end
+
+function test_multiline_constraint()
+    mod = """
+    param n integer;
+    var x {i in 1..n} >= 0;
+    minimize obj: sum {i in 1..n} x[i];
+    subject to
+    bound {i in 1..n}:
+        x[i]
+        >= 0;
+    """
+    try
+        model = JuMPConverter.AMPL.parse_model(mod)
+        @test length(model.constraints) == 1
+        @test model.constraints[1].name == "bound"
+    catch
+        @test_broken false
+    end
+    return
+end
+
+# --- Multiple params and variables ---
+
+function test_multiple_params()
+    mod = """
+    param S integer;
+    param W integer;
+    param H integer;
+    var x >= 0;
+    maximize obj: x;
+    subject to
+    c1 {i in 1..S}: x >= 0;
+    """
+    model = JuMPConverter.AMPL.parse_model(mod)
+    @test length(model.parameters) == 3
+    for name in ["S", "W", "H"]
+        @test haskey(model.parameters, name)
+        @test model.parameters[name].integer
+    end
+    return
+end
+
+function test_param_default()
+    mod = """
+    param S integer;
+    param rho {s in 1..S} default 0;
+    var x >= 0;
+    maximize obj: x;
+    subject to
+    c1 {s in 1..S}: x >= 0;
+    """
+    model = JuMPConverter.AMPL.parse_model(mod)
+    @test model.parameters["rho"].default == 0.0
+    @test model.parameters["rho"].axes !== nothing
+    @test length(model.parameters["rho"].axes.axes) == 1
+    return
+end
+
+function test_param_multi_indexed()
+    mod = """
+    param S integer;
+    param W integer;
+    param H integer;
+    param E {s in 1..S, w in 1..W, h in 1..H} default 0;
+    var x >= 0;
+    maximize obj: x;
+    subject to
+    c1 {s in 1..S}: x >= 0;
+    """
+    model = JuMPConverter.AMPL.parse_model(mod)
+    @test haskey(model.parameters, "E")
+    @test length(model.parameters["E"].axes.axes) == 3
+    return
+end
+
+function test_param_expression_in_range()
+    mod = """
+    param X integer;
+    param H integer;
+    param polyX {x in 1..X, k in 1..3+H} default 0;
+    var xx >= 0;
+    maximize obj: xx;
+    subject to
+    c1 {x in 1..X}: xx >= 0;
+    """
+    model = JuMPConverter.AMPL.parse_model(mod)
+    axes = model.parameters["polyX"].axes.axes
+    @test length(axes) == 2
+    @test axes[2].set == "1..3+H"
+    return
+end
+
+# --- Variable declarations ---
+
+function test_variable_both_bounds()
+    mod = """
+    param W integer;
+    param H integer;
+    var xx {w in 1..W, h in 1..H} >=0, <=1;
+    maximize obj: sum {w in 1..W, h in 1..H} xx[w,h];
+    subject to
+    c1 {w in 1..W}: sum {h in 1..H} xx[w,h] <= 1;
+    """
+    model = JuMPConverter.AMPL.parse_model(mod)
+    @test model.variables["xx"].lower_bound == "0"
+    @test model.variables["xx"].upper_bound == "1"
+    return
+end
+
+function test_variable_zero_start_index()
+    mod = """
+    param S integer;
+    param W integer;
+    var y {s in 1..S, w in 0..W} >=0, <=1;
+    maximize obj: sum {s in 1..S, w in 0..W} y[s,w];
+    subject to
+    c1 {s in 1..S}: sum {w in 0..W} y[s,w] == 1;
+    """
+    model = JuMPConverter.AMPL.parse_model(mod)
+    axes = model.variables["y"].axes.axes
+    @test length(axes) == 2
+    @test axes[2].set == "0..W"
+    return
+end
+
+# --- Objectives ---
+
+function test_maximize_objective()
+    mod = """
+    param n integer;
+    var x {i in 1..n} >= 0;
+    maximize profit: sum {i in 1..n} x[i];
+    subject to
+    c1 {i in 1..n}: x[i] <= 10;
+    """
+    model = JuMPConverter.AMPL.parse_model(mod)
+    @test model.objective.sense == MOI.MAX_SENSE
+    @test model.objective.name == "profit"
+    return
+end
+
+function test_minimize_objective()
+    # The current parser only supports `maximize`, not `minimize`.
+    mod = """
+    param n integer;
+    var x {i in 1..n} >= 0;
+    minimize cost: sum {i in 1..n} x[i];
+    subject to
+    c1 {i in 1..n}: x[i] <= 10;
+    """
+    try
+        model = JuMPConverter.AMPL.parse_model(mod)
+        @test model.objective.sense == MOI.MIN_SENSE
+        @test model.objective.name == "cost"
+    catch
+        @test_broken false
+    end
+    return
+end
+
+# --- Constraints ---
+
+function test_indexed_constraint()
+    mod = """
+    param S integer;
+    param W integer;
+    var y {s in 1..S, w in 0..W} >= 0;
+    maximize obj: sum {s in 1..S, w in 0..W} y[s,w];
+    subject to
+    simplex {s in 1..S}: sum{w in 0..W}(y[s,w]) == 1;
+    """
+    model = JuMPConverter.AMPL.parse_model(mod)
+    @test length(model.constraints) == 1
+    c = model.constraints[1]
+    @test c.name == "simplex"
+    @test c.axes !== nothing
+    return
+end
+
+function test_constraint_with_condition()
+    mod = """
+    param X integer;
+    param H integer;
+    param polyX {x in 1..X, k in 1..3+H} default 0;
+    var xx {w in 1..4, h in 1..H} >= 0;
+    maximize obj: sum {w in 1..4, h in 1..H} xx[w,h];
+    subject to
+    testgeq {x in 1..X: polyX[x,2] == 1}: sum{h in 1..H}(polyX[x,3+h]*xx[round(polyX[x,1]),h]) >= polyX[x,3];
+    """
+    model = JuMPConverter.AMPL.parse_model(mod)
+    c = model.constraints[1]
+    @test c.axes.condition !== nothing
+    @test contains(c.axes.condition, "polyX[x, 2] == 1")
+    return
+end
+
+function test_multiple_constraints()
+    mod = """
+    param n integer;
+    var x {i in 1..n} >= 0;
+    var y {j in 1..n} >= 0;
+    maximize obj: sum {i in 1..n} (x[i] + y[i]);
+    subject to
+    c1 {i in 1..n}: x[i] >= 1;
+    c2 {j in 1..n}: y[j] >= 2;
+    c3 {k in 1..n}: x[k] + y[k] >= 3;
+    """
+    model = JuMPConverter.AMPL.parse_model(mod)
+    @test length(model.constraints) == 3
+    return
+end
+
+function test_complementarity_constraint()
+    mod = """
+    param S integer;
+    param W integer;
+    param H integer;
+    param E {s in 1..S, w in 1..W, h in 1..H} default 0;
+    var xx {w in 1..W, h in 1..H} >= 0;
+    var y {s in 1..S, w in 0..W} >= 0;
+    var mu {s in 1..S} >= 0;
+    maximize obj: sum {s in 1..S} mu[s];
+    subject to
+    KKT {s in 1..S, w in 1..W}: 0 <= sum{h in 1..H}(E[s,w,h]*xx[w,h]) + mu[s] complements y[s,w] >= 0;
+    """
+    model = JuMPConverter.AMPL.parse_model(mod)
+    @test length(model.constraints) == 1
+    @test contains(model.constraints[1].expression, "\u27c2")
+    return
+end
+
+# ============================================================
+# Tests for features the new parser should support
+# (these document desired behavior that isn't tested yet
+#  because the current parser structure can't handle them)
+# ============================================================
+
+function test_no_subject_to_keyword()
+    # In AMPL, `subject to` is optional - any unrecognized declaration
+    # is a constraint. The current parser requires `subject to`.
+    mod = """
+    param n integer;
+    var x {i in 1..n} >= 0;
+    minimize cost: sum {i in 1..n} x[i];
+    bound {i in 1..n}: x[i] <= 10;
+    """
+    try
+        model = JuMPConverter.AMPL.parse_model(mod)
+        @test length(model.constraints) == 1
+    catch
+        @test_broken false
+    end
+    return
+end
+
+function test_double_inequality()
+    # subject to Bounds {j in 1..n}: lb[j] <= x[j] <= ub[j];
+    mod = """
+    param n integer;
+    param lb {i in 1..n} default 0;
+    param ub {i in 1..n} default 1;
+    var x {i in 1..n};
+    minimize cost: sum {i in 1..n} x[i];
+    subject to
+    bounds {i in 1..n}: lb[i] <= x[i] <= ub[i];
+    """
+    try
+        model = JuMPConverter.AMPL.parse_model(mod)
+        @test length(model.constraints) == 1
+    catch
+        @test_broken false
+    end
+    return
+end
+
+function test_binary_variable()
+    mod = """
+    param n integer;
+    var x {i in 1..n} binary;
+    maximize obj: sum {i in 1..n} x[i];
+    subject to
+    c1 {i in 1..n}: x[i] <= 1;
+    """
+    try
+        model = JuMPConverter.AMPL.parse_model(mod)
+        @test model.variables["x"].binary
+    catch
+        @test_broken false
+    end
+    return
+end
+
+function test_integer_variable()
+    mod = """
+    param n integer;
+    var x {i in 1..n} integer, >= 0;
+    maximize obj: sum {i in 1..n} x[i];
+    subject to
+    c1 {i in 1..n}: x[i] <= 10;
+    """
+    try
+        model = JuMPConverter.AMPL.parse_model(mod)
+        @test model.variables["x"].integer
+    catch
+        @test_broken false
+    end
+    return
+end
+
+function test_set_declaration()
+    # Sets are not currently parsed by the .mod parser
+    mod = """
+    set PRODUCTS;
+    param cost {PRODUCTS} default 0;
+    var Buy {PRODUCTS} >= 0;
+    minimize total: sum {p in PRODUCTS} cost[p] * Buy[p];
+    subject to
+    budget: sum {p in PRODUCTS} cost[p] * Buy[p] <= 100;
+    """
+    try
+        model = JuMPConverter.AMPL.parse_model(mod)
+        @test haskey(model.variables, "Buy")
+    catch
+        @test_broken false
+    end
+    return
+end
+
+function test_conditional_expression_if_then_else()
+    mod = """
+    param n integer;
+    param flag {i in 1..n} default 0;
+    var x {i in 1..n} >= 0;
+    minimize cost: sum {i in 1..n} (if flag[i] == 1 then x[i] else 0);
+    subject to
+    c1 {i in 1..n}: x[i] <= 10;
+    """
+    try
+        model = JuMPConverter.AMPL.parse_model(mod)
+        @test model.objective !== nothing
+        @test contains(model.objective.expression, "if")
+    catch
+        @test_broken false
+    end
+    return
+end
+
+end  # module
+
+TestModParsing.runtests()
