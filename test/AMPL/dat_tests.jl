@@ -325,9 +325,7 @@ function test_set_integers()
 end
 
 function test_set_strings()
-    data = JuMPConverter.AMPL.parse_dat(
-        "set CITIES := Seattle Denver Chicago;",
-    )
+    data = JuMPConverter.AMPL.parse_dat("set CITIES := Seattle Denver Chicago;")
     @test data["CITIES"] == ["Seattle", "Denver", "Chicago"]
     return
 end

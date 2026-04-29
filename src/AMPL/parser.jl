@@ -54,7 +54,10 @@ rho = data["rho"]  # Vector
 E = data["E"]  # 3D array
 ```
 """
-function read_dat(filename::String, model::Union{JuMPConverter.Model,Nothing} = nothing)
+function read_dat(
+    filename::String,
+    model::Union{JuMPConverter.Model,Nothing} = nothing,
+)
     s = read(filename, String)
     return parse_dat(s, model)
 end
@@ -484,7 +487,10 @@ end
 Parse AMPL .dat content using the tokenizer. Uses model info to determine
 parameter dimensionality.
 """
-function parse_dat(text::String, model::Union{JuMPConverter.Model,Nothing} = nothing)
+function parse_dat(
+    text::String,
+    model::Union{JuMPConverter.Model,Nothing} = nothing,
+)
     data = Dict{String,Any}()
     lex = Lexer(text)
     while peek(lex).kind != TOKEN_EOF
