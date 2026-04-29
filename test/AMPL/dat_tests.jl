@@ -101,7 +101,7 @@ function test_newlines_are_spaces_1d()
     # The model tells us `c` is indexed over 1..3, so the parser knows
     # to read (index, value) pairs from the token stream.
     mod = """
-    param n := 3;
+    param n integer;
     param c {i in 1..n};
     """
     dat_multiline = """
@@ -114,7 +114,8 @@ function test_newlines_are_spaces_1d()
     data_multi = parse_dat(dat_multiline, mod)
     @test data_multi["c"][1] ≈ 10.0
     data_one = parse_dat(dat_oneline, mod)
-    @test_broken data_one["c"] isa Vector
+    @test data_one["c"] isa Vector
+    @test data_one["c"] == data_multi["c"]
     return
 end
 
@@ -134,7 +135,7 @@ function test_newlines_are_spaces_table()
     data_multi = parse_dat(dat_multiline, mod)
     @test haskey(data_multi, "cost")
     data_one = parse_dat(dat_oneline, mod)
-    @test_broken data_one["cost"] == data_multi["cost"]
+    @test data_one["cost"] == data_multi["cost"]
     return
 end
 
@@ -209,16 +210,17 @@ function test_1d_array()
 end
 
 function test_1d_array_single_line()
-    # Without model info, `param c := 1 10.0 2 20.0 3 30.0` is ambiguous:
-    # is it a scalar string or a 1D array?
     # With model info (c is indexed), the parser knows to read pairs.
     mod = """
-    param n := 3;
+    param n integer;
     param c {i in 1..n};
     """
     dat = "param c := 1 10.0 2 20.0 3 30.0;"
     data = parse_dat(dat, mod)
-    @test_broken data["c"] isa Vector
+    @test data["c"] isa Vector
+    @test data["c"][1] ≈ 10.0
+    @test data["c"][2] ≈ 20.0
+    @test data["c"][3] ≈ 30.0
     return
 end
 

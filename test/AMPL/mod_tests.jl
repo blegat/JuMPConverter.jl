@@ -391,7 +391,7 @@ function test_constraint_with_condition()
     model = JuMPConverter.AMPL.parse_model(mod)
     c = model.constraints[1]
     @test c.axes.condition !== nothing
-    @test contains(c.axes.condition, "polyX[x,2] == 1")
+    @test contains(c.axes.condition, "polyX[x, 2] == 1")
     return
 end
 
