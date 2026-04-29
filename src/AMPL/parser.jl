@@ -2,6 +2,18 @@ import DataFrames
 import OrderedCollections
 import JuMP
 
+function _concrete_eltype(container)
+    if any(Base.Fix2(isa, AbstractString), container)
+        return String
+    end
+    return mapreduce(typeof, promote_type, container, init = Int)
+end
+
+function _convert_to_concrete_eltype(container::Vector)
+    T = _concrete_eltype(container)
+    return convert(Vector{T}, container)
+end
+
 function _any_parse(s::AbstractString; allow_dot::Bool = false)
     s = strip(s)
     if allow_dot && s == "."
@@ -320,7 +332,22 @@ function _dat_parse_multi_column!(
     end
     if isnothing(num_indices)
         for ni in 1:3
-            if length(all_values) % (ni + num_cols) == 0
+            rs = ni + num_cols
+            if length(all_values) % rs != 0
+                continue
+            end
+            # Validate that all index positions are integers
+            indices_ok = true
+            for row_start in 1:rs:length(all_values)
+                for j in 0:(ni-1)
+                    if !(all_values[row_start+j] isa Int)
+                        indices_ok = false
+                        break
+                    end
+                end
+                indices_ok || break
+            end
+            if indices_ok
                 num_indices = ni
                 break
             end
