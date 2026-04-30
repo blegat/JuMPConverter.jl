@@ -9,12 +9,14 @@ function build_model(; S, W, H, X, rho, beta, alpha, E, C, R, polyX, _kwargs...)
     @constraint(
         model,
         testgeq,
-        sum{h in 1..H}(polyX[x, 3+h] * xx[round(polyX[x, 1]), h]) >= polyX[x, 3]
+        sum{h in 1..H}(polyX[x, 3+h] * xx[round(polyX[x, 1]), h]) >=
+        polyX[x, 3]
     )
     @constraint(
         model,
         testeq,
-        sum{h in 1..H}(polyX[x, 3+h] * xx[round(polyX[x, 1]), h]) == polyX[x, 3]
+        sum{h in 1..H}(polyX[x, 3+h] * xx[round(polyX[x, 1]), h]) ==
+        polyX[x, 3]
     )
     @constraint(
         model,
