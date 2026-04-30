@@ -30,6 +30,34 @@ using JuMPConverter
 model = JuMPConverter.AMPL.read_model("file.mof")
 ```
 
+### Loading data from a `.dat` file
+
+AMPL keeps the model structure (`.mod`) and the data (`.dat`) in
+separate files. The emitted Julia file defines a `build_model` function
+whose keyword arguments are the AMPL parameters declared in the `.mod`,
+plus a trailing `_kwargs...` to absorb any extras. To populate the
+model, parse the data with `read_dat` (passing the model so each
+parameter's dimensionality is resolved correctly) and splat the
+resulting dictionary into `build_model`:
+
+```julia
+using JuMPConverter
+model = JuMPConverter.AMPL.read_model("file.mod")
+open("file.jl", "w") do io
+    println(io, model)
+end
+
+# In file.jl: `function build_model(; S, W, ..., _kwargs...) ... end`
+include("file.jl")
+
+data = JuMPConverter.AMPL.read_dat("file.dat", model)
+jump_model = build_model(; data...)
+```
+
+`data` is a `Dict{String,Any}` mapping each parameter or set name to a
+scalar, `Vector`, `Array`, `JuMP.Containers.DenseAxisArray`, or
+`JuMP.Containers.SparseAxisArray` depending on the declaration.
+
 To read a GAMS™ model `file.gms`, do:
 ```julia
 using JuMPConverter
