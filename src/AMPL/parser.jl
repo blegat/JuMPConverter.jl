@@ -97,11 +97,15 @@ function df_to_container!(data::Dict{String,Any}, df::DataFrames.DataFrame)
             if any(ismissing, vals)
                 dict = OrderedCollections.OrderedDict{Tuple{String},Float64}()
                 for i in axes(df, 1)
-                    !ismissing(vals[i]) && (dict[(df.index[i],)] = Float64(vals[i]))
+                    !ismissing(vals[i]) &&
+                        (dict[(df.index[i],)] = Float64(vals[i]))
                 end
                 JuMP.Containers.SparseAxisArray(dict)
             else
-                JuMP.Containers.DenseAxisArray(convert(Vector{Float64}, vals), ax...)
+                JuMP.Containers.DenseAxisArray(
+                    convert(Vector{Float64}, vals),
+                    ax...,
+                )
             end
         elseif length(vals) < prod(sz) || any(ismissing, vals)
             dict = OrderedCollections.OrderedDict{NTuple{length(ax),Int},Float64}()
@@ -358,17 +362,20 @@ function _dat_parse_multi_column!(
     end
 
     # Determine num_indices (row index dimensions)
-    num_indices = _determine_num_indices(model, prefix_name, all_col_names, sections)
+    num_indices =
+        _determine_num_indices(model, prefix_name, all_col_names, sections)
 
     # Parse rows from each section
     # Key type: NTuple{num_indices,Int} or String
     # Determine if all row indices are ints by scanning first section
     first_cols, first_vals = sections[1]
     row_size_1 = num_indices + length(first_cols)
-    all_ints = row_size_1 <= length(first_vals) &&
-               all(j -> first_vals[j] isa Int, 1:num_indices)
+    all_ints =
+        row_size_1 <= length(first_vals) &&
+        all(j -> first_vals[j] isa Int, 1:num_indices)
 
-    row_dict = OrderedCollections.OrderedDict{Any,Dict{String,Union{Float64,Missing}}}()
+    row_dict =
+        OrderedCollections.OrderedDict{Any,Dict{String,Union{Float64,Missing}}}()
 
     for (section_cols, section_vals) in sections
         row_size = num_indices + length(section_cols)
@@ -393,7 +400,7 @@ function _dat_parse_multi_column!(
     isempty(row_dict) && return
 
     IndexType = all_ints ? NTuple{num_indices,Int} : String
-    cols = Any["index" => IndexType[]]
+    cols = Any["index"=>IndexType[]]
     for col in all_col_names
         push!(cols, col => Union{Float64,Missing}[])
     end
@@ -581,7 +588,7 @@ function parse_dat(
             if peek(lex).kind == TOKEN_LBRACE
                 # Indexed let: let{s in S} name[idx] := expr; — skip
                 while peek(lex).kind != TOKEN_SEMICOLON &&
-                          peek(lex).kind != TOKEN_EOF
+                    peek(lex).kind != TOKEN_EOF
                     read_token!(lex)
                 end
             else

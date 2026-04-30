@@ -67,9 +67,9 @@ function _parse_axe(s::AbstractString)
             depth += 1
         elseif c in (')', '}', ']')
             depth -= 1
-        elseif c == ' ' && depth == 0 && i + 3 <= n && s[i:i+3] == " in "
-            name = strip(s[1:i-1])
-            set = strip(s[i+4:end])
+        elseif c == ' ' && depth == 0 && i + 3 <= n && s[i:(i+3)] == " in "
+            name = strip(s[1:(i-1)])
+            set = strip(s[(i+4):end])
             return JuMPConverter.Axe(name, isempty(set) ? name : set)
         end
     end

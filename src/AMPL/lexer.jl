@@ -398,33 +398,11 @@ function _needs_space(prev::Union{Nothing,TokenKind}, curr::TokenKind)
        curr in (TOKEN_IDENTIFIER, TOKEN_NUMBER)
         return true
     end
-    # Space around comparison and arithmetic operators
-    if curr in (
-        TOKEN_GEQ,
-        TOKEN_LEQ,
-        TOKEN_EQ,
-        TOKEN_NEQ,
-        TOKEN_PLUS,
-        TOKEN_MINUS,
-        TOKEN_STAR,
-        TOKEN_SLASH,
-        TOKEN_CARET,
-        TOKEN_STARSTAR,
-    )
+    # Space around comparison operators only; arithmetic stays compact
+    if curr in (TOKEN_GEQ, TOKEN_LEQ, TOKEN_EQ, TOKEN_NEQ, TOKEN_LT, TOKEN_GT)
         return true
     end
-    if prev in (
-        TOKEN_GEQ,
-        TOKEN_LEQ,
-        TOKEN_EQ,
-        TOKEN_NEQ,
-        TOKEN_PLUS,
-        TOKEN_MINUS,
-        TOKEN_STAR,
-        TOKEN_SLASH,
-        TOKEN_CARET,
-        TOKEN_STARSTAR,
-    )
+    if prev in (TOKEN_GEQ, TOKEN_LEQ, TOKEN_EQ, TOKEN_NEQ, TOKEN_LT, TOKEN_GT)
         return true
     end
     return false
