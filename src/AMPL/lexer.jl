@@ -346,7 +346,12 @@ Read tokens including balanced open/close pairs. The opening token
 should already be consumed. Returns text inside (not including the
 closing token which is consumed).
 """
-function read_balanced!(lex::Lexer, open::TokenKind, close::TokenKind)
+function read_balanced!(
+    lex::Lexer,
+    open::TokenKind,
+    close::TokenKind;
+    compact::Bool = false,
+)
     parts = String[]
     prev_kind = nothing
     depth = 1
@@ -363,7 +368,7 @@ function read_balanced!(lex::Lexer, open::TokenKind, close::TokenKind)
                 break
             end
         end
-        if !isempty(parts) && _needs_space(prev_kind, t.kind)
+        if !isempty(parts) && _needs_space(prev_kind, t.kind; compact)
             push!(parts, " ")
         end
         push!(parts, t.value)
@@ -372,7 +377,23 @@ function read_balanced!(lex::Lexer, open::TokenKind, close::TokenKind)
     return join(parts)
 end
 
-function _needs_space(prev::Union{Nothing,TokenKind}, curr::TokenKind)
+const _ARITH_OPS = (
+    TOKEN_PLUS,
+    TOKEN_MINUS,
+    TOKEN_STAR,
+    TOKEN_SLASH,
+    TOKEN_CARET,
+    TOKEN_STARSTAR,
+)
+
+const _COMP_OPS =
+    (TOKEN_GEQ, TOKEN_LEQ, TOKEN_EQ, TOKEN_NEQ, TOKEN_LT, TOKEN_GT)
+
+function _needs_space(
+    prev::Union{Nothing,TokenKind},
+    curr::TokenKind;
+    compact::Bool = false,
+)
     isnothing(prev) && return false
     # No space after open or before close
     prev in (TOKEN_LPAREN, TOKEN_LBRACE, TOKEN_LBRACKET) && return false
@@ -398,11 +419,12 @@ function _needs_space(prev::Union{Nothing,TokenKind}, curr::TokenKind)
        curr in (TOKEN_IDENTIFIER, TOKEN_NUMBER)
         return true
     end
-    # Space around comparison operators only; arithmetic stays compact
-    if curr in (TOKEN_GEQ, TOKEN_LEQ, TOKEN_EQ, TOKEN_NEQ, TOKEN_LT, TOKEN_GT)
+    # Space around comparison operators always
+    if curr in _COMP_OPS || prev in _COMP_OPS
         return true
     end
-    if prev in (TOKEN_GEQ, TOKEN_LEQ, TOKEN_EQ, TOKEN_NEQ, TOKEN_LT, TOKEN_GT)
+    # Space around arithmetic operators in non-compact mode
+    if !compact && (curr in _ARITH_OPS || prev in _ARITH_OPS)
         return true
     end
     return false

@@ -10,7 +10,7 @@ function _read_axes!(lex::Lexer)
     end
     read_token!(lex)  # consume {
     # Read everything until }, tracking brace depth for nested expressions
-    content = read_balanced!(lex, TOKEN_LBRACE, TOKEN_RBRACE)
+    content = read_balanced!(lex, TOKEN_LBRACE, TOKEN_RBRACE; compact = true)
     # Split on `:` for condition (but not `::` or `:=`)
     # The condition is after the last top-level `:` that is not inside braces
     axes_str, cond = _split_condition(content)
@@ -99,13 +99,19 @@ function _read_expression!(lex::Lexer, stops::NTuple{N,TokenKind}) where {N}
         end
         if t.kind == TOKEN_LBRACE
             push!(parts, "{")
-            inner = read_balanced!(lex, TOKEN_LBRACE, TOKEN_RBRACE)
+            inner =
+                read_balanced!(lex, TOKEN_LBRACE, TOKEN_RBRACE; compact = true)
             push!(parts, inner)
             push!(parts, "}")
             prev_kind = TOKEN_RBRACE
         elseif t.kind == TOKEN_LBRACKET
             push!(parts, "[")
-            inner = read_balanced!(lex, TOKEN_LBRACKET, TOKEN_RBRACKET)
+            inner = read_balanced!(
+                lex,
+                TOKEN_LBRACKET,
+                TOKEN_RBRACKET;
+                compact = true,
+            )
             push!(parts, inner)
             push!(parts, "]")
             prev_kind = TOKEN_RBRACKET

@@ -182,7 +182,8 @@ function _dat_parse_set!(lex::Lexer, data::Dict{String,Any})
             continue
         elseif t.kind == TOKEN_LPAREN
             read_token!(lex)
-            inner = read_balanced!(lex, TOKEN_LPAREN, TOKEN_RPAREN)
+            inner =
+                read_balanced!(lex, TOKEN_LPAREN, TOKEN_RPAREN; compact = true)
             push!(values, "(" * inner * ")")
         else
             push!(values, _read_dat_value!(lex))
@@ -476,7 +477,8 @@ function _dat_parse_slice!(lex::Lexer, data::Dict{String,Any}, name::String)
     while true
         # Read [*,*,h] or [subscript] bracket
         expect!(lex, TOKEN_LBRACKET)
-        bracket_content = read_balanced!(lex, TOKEN_LBRACKET, TOKEN_RBRACKET)
+        bracket_content =
+            read_balanced!(lex, TOKEN_LBRACKET, TOKEN_RBRACKET; compact = true)
         # If followed by := it's a subscript assignment (e.g. let x[1] := 0) — skip
         if peek(lex).kind == TOKEN_ASSIGN
             read_token!(lex)  # consume :=
