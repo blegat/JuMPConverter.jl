@@ -594,6 +594,23 @@ function parse_dat(
                 peek(lex).kind != TOKEN_EOF
                 read_token!(lex)
             end
+        elseif kw == "for" || kw == "if"
+            read_token!(lex)
+            depth = 0
+            while peek(lex).kind != TOKEN_EOF
+                tk = peek(lex)
+                if tk.kind in (TOKEN_LBRACE, TOKEN_LBRACKET, TOKEN_LPAREN)
+                    depth += 1
+                    read_token!(lex)
+                elseif tk.kind in (TOKEN_RBRACE, TOKEN_RBRACKET, TOKEN_RPAREN)
+                    depth -= 1
+                    read_token!(lex)
+                elseif tk.kind == TOKEN_SEMICOLON && depth == 0
+                    break
+                else
+                    read_token!(lex)
+                end
+            end
         else
             read_token!(lex)
         end

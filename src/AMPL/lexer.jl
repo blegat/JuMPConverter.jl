@@ -55,19 +55,19 @@ function Lexer(input::String)
 end
 
 function _skip_whitespace_and_comments!(lex::Lexer)
-    while lex.pos <= length(lex.input)
+    while lex.pos <= ncodeunits(lex.input)
         c = lex.input[lex.pos]
         if c == '#'
             # Skip to end of line
-            while lex.pos <= length(lex.input) && lex.input[lex.pos] != '\n'
+            while lex.pos <= ncodeunits(lex.input) && lex.input[lex.pos] != '\n'
                 lex.pos += 1
             end
         elseif c == '/' &&
-               lex.pos + 1 <= length(lex.input) &&
+               lex.pos + 1 <= ncodeunits(lex.input) &&
                lex.input[lex.pos+1] == '*'
             # C-style block comment /* ... */
             lex.pos += 2
-            while lex.pos + 1 <= length(lex.input)
+            while lex.pos + 1 <= ncodeunits(lex.input)
                 if lex.input[lex.pos] == '*' && lex.input[lex.pos+1] == '/'
                     lex.pos += 2
                     break
@@ -86,17 +86,17 @@ end
 function _read_number!(lex::Lexer)
     start = lex.pos
     # Optional leading sign is already consumed or not present
-    while lex.pos <= length(lex.input)
+    while lex.pos <= ncodeunits(lex.input)
         c = lex.input[lex.pos]
         if isdigit(c) || c == '.'
             # Check for `..` — that's TOKEN_DOTDOT, not part of number
             if c == '.'
-                if lex.pos + 1 <= length(lex.input) &&
+                if lex.pos + 1 <= ncodeunits(lex.input) &&
                    lex.input[lex.pos+1] == '.'
                     break
                 end
                 # Check that next char is a digit (otherwise it's ambiguous)
-                if lex.pos + 1 <= length(lex.input) &&
+                if lex.pos + 1 <= ncodeunits(lex.input) &&
                    !isdigit(lex.input[lex.pos+1]) &&
                    lex.input[lex.pos+1] != 'e' &&
                    lex.input[lex.pos+1] != 'E'
@@ -108,7 +108,7 @@ function _read_number!(lex::Lexer)
             lex.pos += 1
         elseif c == 'e' || c == 'E'
             lex.pos += 1
-            if lex.pos <= length(lex.input) &&
+            if lex.pos <= ncodeunits(lex.input) &&
                (lex.input[lex.pos] == '+' || lex.input[lex.pos] == '-')
                 lex.pos += 1
             end
@@ -121,7 +121,7 @@ end
 
 function _read_identifier!(lex::Lexer)
     start = lex.pos
-    while lex.pos <= length(lex.input)
+    while lex.pos <= ncodeunits(lex.input)
         c = lex.input[lex.pos]
         if isdigit(c) || isletter(c) || c == '_'
             lex.pos += 1
@@ -134,12 +134,12 @@ end
 
 function _next_token!(lex::Lexer)
     _skip_whitespace_and_comments!(lex)
-    if lex.pos > length(lex.input)
+    if lex.pos > ncodeunits(lex.input)
         return Token(TOKEN_EOF, "")
     end
     c = lex.input[lex.pos]
     # Two-character operators (check first)
-    if lex.pos + 1 <= length(lex.input)
+    if lex.pos + 1 <= ncodeunits(lex.input)
         c2 = lex.input[lex.pos+1]
         if c == ':' && c2 == '='
             lex.pos += 2
@@ -185,7 +185,7 @@ function _next_token!(lex::Lexer)
         return Token(TOKEN_COMMA, ",")
     elseif c == '.'
         # Leading-dot float: .38 → TOKEN_NUMBER "0.38"
-        if lex.pos + 1 <= length(lex.input) && isdigit(lex.input[lex.pos+1])
+        if lex.pos + 1 <= ncodeunits(lex.input) && isdigit(lex.input[lex.pos+1])
             return _read_number!(lex)
         end
         lex.pos += 1
@@ -255,11 +255,11 @@ end
 function _read_string!(lex::Lexer, quote_char::Char)
     lex.pos += 1  # consume opening quote
     start = lex.pos
-    while lex.pos <= length(lex.input) && lex.input[lex.pos] != quote_char
+    while lex.pos <= ncodeunits(lex.input) && lex.input[lex.pos] != quote_char
         lex.pos += 1
     end
     val = lex.input[start:(lex.pos-1)]
-    if lex.pos <= length(lex.input)
+    if lex.pos <= ncodeunits(lex.input)
         lex.pos += 1  # consume closing quote
     end
     return Token(TOKEN_IDENTIFIER, val)
