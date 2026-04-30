@@ -4,7 +4,10 @@ import JuMPConverter
 
 function _mod_path(p::MacMPEC.Problem)
     return joinpath(
-        dirname(dirname(pathof(MacMPEC))), "data", "problems", p.mod_file
+        dirname(dirname(pathof(MacMPEC))),
+        "data",
+        "problems",
+        p.mod_file,
     )
 end
 
