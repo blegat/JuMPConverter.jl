@@ -30,9 +30,12 @@ Inspired by MathOptInterface/src/FileFormats/LP/read.jl.
     TOKEN_GEQ,         # >=
     TOKEN_LEQ,         # <=
     TOKEN_EQ,          # == or =
-    TOKEN_NEQ,         # <>
+    TOKEN_NEQ,         # <> or !=
     TOKEN_LT,          # <
     TOKEN_GT,          # >
+    TOKEN_AND,         # && or and
+    TOKEN_OR,          # || or or
+    TOKEN_NOT,         # ! or not
     TOKEN_EOF,         # end of input
 )
 
@@ -52,11 +55,23 @@ function Lexer(input::String)
 end
 
 function _skip_whitespace_and_comments!(lex::Lexer)
-    while lex.pos <= length(lex.input)
+    while lex.pos <= ncodeunits(lex.input)
         c = lex.input[lex.pos]
         if c == '#'
             # Skip to end of line
-            while lex.pos <= length(lex.input) && lex.input[lex.pos] != '\n'
+            while lex.pos <= ncodeunits(lex.input) && lex.input[lex.pos] != '\n'
+                lex.pos += 1
+            end
+        elseif c == '/' &&
+               lex.pos + 1 <= ncodeunits(lex.input) &&
+               lex.input[lex.pos+1] == '*'
+            # C-style block comment /* ... */
+            lex.pos += 2
+            while lex.pos + 1 <= ncodeunits(lex.input)
+                if lex.input[lex.pos] == '*' && lex.input[lex.pos+1] == '/'
+                    lex.pos += 2
+                    break
+                end
                 lex.pos += 1
             end
         elseif isspace(c)
@@ -71,17 +86,17 @@ end
 function _read_number!(lex::Lexer)
     start = lex.pos
     # Optional leading sign is already consumed or not present
-    while lex.pos <= length(lex.input)
+    while lex.pos <= ncodeunits(lex.input)
         c = lex.input[lex.pos]
         if isdigit(c) || c == '.'
             # Check for `..` — that's TOKEN_DOTDOT, not part of number
             if c == '.'
-                if lex.pos + 1 <= length(lex.input) &&
+                if lex.pos + 1 <= ncodeunits(lex.input) &&
                    lex.input[lex.pos+1] == '.'
                     break
                 end
                 # Check that next char is a digit (otherwise it's ambiguous)
-                if lex.pos + 1 <= length(lex.input) &&
+                if lex.pos + 1 <= ncodeunits(lex.input) &&
                    !isdigit(lex.input[lex.pos+1]) &&
                    lex.input[lex.pos+1] != 'e' &&
                    lex.input[lex.pos+1] != 'E'
@@ -93,7 +108,7 @@ function _read_number!(lex::Lexer)
             lex.pos += 1
         elseif c == 'e' || c == 'E'
             lex.pos += 1
-            if lex.pos <= length(lex.input) &&
+            if lex.pos <= ncodeunits(lex.input) &&
                (lex.input[lex.pos] == '+' || lex.input[lex.pos] == '-')
                 lex.pos += 1
             end
@@ -106,7 +121,7 @@ end
 
 function _read_identifier!(lex::Lexer)
     start = lex.pos
-    while lex.pos <= length(lex.input)
+    while lex.pos <= ncodeunits(lex.input)
         c = lex.input[lex.pos]
         if isdigit(c) || isletter(c) || c == '_'
             lex.pos += 1
@@ -119,12 +134,12 @@ end
 
 function _next_token!(lex::Lexer)
     _skip_whitespace_and_comments!(lex)
-    if lex.pos > length(lex.input)
+    if lex.pos > ncodeunits(lex.input)
         return Token(TOKEN_EOF, "")
     end
     c = lex.input[lex.pos]
     # Two-character operators (check first)
-    if lex.pos + 1 <= length(lex.input)
+    if lex.pos + 1 <= ncodeunits(lex.input)
         c2 = lex.input[lex.pos+1]
         if c == ':' && c2 == '='
             lex.pos += 2
@@ -147,6 +162,15 @@ function _next_token!(lex::Lexer)
         elseif c == '<' && c2 == '>'
             lex.pos += 2
             return Token(TOKEN_NEQ, "<>")
+        elseif c == '!' && c2 == '='
+            lex.pos += 2
+            return Token(TOKEN_NEQ, "!=")
+        elseif c == '&' && c2 == '&'
+            lex.pos += 2
+            return Token(TOKEN_AND, "&&")
+        elseif c == '|' && c2 == '|'
+            lex.pos += 2
+            return Token(TOKEN_OR, "||")
         end
     end
     # Single-character tokens
@@ -160,6 +184,10 @@ function _next_token!(lex::Lexer)
         lex.pos += 1
         return Token(TOKEN_COMMA, ",")
     elseif c == '.'
+        # Leading-dot float: .38 → TOKEN_NUMBER "0.38"
+        if lex.pos + 1 <= ncodeunits(lex.input) && isdigit(lex.input[lex.pos+1])
+            return _read_number!(lex)
+        end
         lex.pos += 1
         return Token(TOKEN_DOT, ".")
     elseif c == '{'
@@ -204,13 +232,37 @@ function _next_token!(lex::Lexer)
     elseif c == '='
         lex.pos += 1
         return Token(TOKEN_EQ, "=")
+    elseif c == '!'
+        lex.pos += 1
+        return Token(TOKEN_NOT, "!")
+    elseif c == '&'
+        lex.pos += 1
+        return Token(TOKEN_AND, "&")
+    elseif c == '|'
+        lex.pos += 1
+        return Token(TOKEN_OR, "|")
     elseif isdigit(c)
         return _read_number!(lex)
     elseif isletter(c) || c == '_'
         return _read_identifier!(lex)
+    elseif c == '\'' || c == '"'
+        return _read_string!(lex, c)
     else
         error("Unexpected character '$(c)' at position $(lex.pos)")
     end
+end
+
+function _read_string!(lex::Lexer, quote_char::Char)
+    lex.pos += 1  # consume opening quote
+    start = lex.pos
+    while lex.pos <= ncodeunits(lex.input) && lex.input[lex.pos] != quote_char
+        lex.pos += 1
+    end
+    val = lex.input[start:(lex.pos-1)]
+    if lex.pos <= ncodeunits(lex.input)
+        lex.pos += 1  # consume closing quote
+    end
+    return Token(TOKEN_IDENTIFIER, val)
 end
 
 """
@@ -294,7 +346,12 @@ Read tokens including balanced open/close pairs. The opening token
 should already be consumed. Returns text inside (not including the
 closing token which is consumed).
 """
-function read_balanced!(lex::Lexer, open::TokenKind, close::TokenKind)
+function read_balanced!(
+    lex::Lexer,
+    open::TokenKind,
+    close::TokenKind;
+    compact::Bool = false,
+)
     parts = String[]
     prev_kind = nothing
     depth = 1
@@ -311,7 +368,7 @@ function read_balanced!(lex::Lexer, open::TokenKind, close::TokenKind)
                 break
             end
         end
-        if !isempty(parts) && _needs_space(prev_kind, t.kind)
+        if !isempty(parts) && _needs_space(prev_kind, t.kind; compact)
             push!(parts, " ")
         end
         push!(parts, t.value)
@@ -320,7 +377,23 @@ function read_balanced!(lex::Lexer, open::TokenKind, close::TokenKind)
     return join(parts)
 end
 
-function _needs_space(prev::Union{Nothing,TokenKind}, curr::TokenKind)
+const _ARITH_OPS = (
+    TOKEN_PLUS,
+    TOKEN_MINUS,
+    TOKEN_STAR,
+    TOKEN_SLASH,
+    TOKEN_CARET,
+    TOKEN_STARSTAR,
+)
+
+const _COMP_OPS =
+    (TOKEN_GEQ, TOKEN_LEQ, TOKEN_EQ, TOKEN_NEQ, TOKEN_LT, TOKEN_GT)
+
+function _needs_space(
+    prev::Union{Nothing,TokenKind},
+    curr::TokenKind;
+    compact::Bool = false,
+)
     isnothing(prev) && return false
     # No space after open or before close
     prev in (TOKEN_LPAREN, TOKEN_LBRACE, TOKEN_LBRACKET) && return false
@@ -336,38 +409,22 @@ function _needs_space(prev::Union{Nothing,TokenKind}, curr::TokenKind)
        prev in (TOKEN_IDENTIFIER, TOKEN_NUMBER, TOKEN_RPAREN, TOKEN_RBRACKET)
         return false
     end
+    # Space after close bracket/paren before identifier/number (e.g. "(i,j,k) in S")
+    if prev in (TOKEN_RPAREN, TOKEN_RBRACE, TOKEN_RBRACKET) &&
+       curr in (TOKEN_IDENTIFIER, TOKEN_NUMBER)
+        return true
+    end
     # Space between identifier/number and identifier/number
     if prev in (TOKEN_IDENTIFIER, TOKEN_NUMBER) &&
        curr in (TOKEN_IDENTIFIER, TOKEN_NUMBER)
         return true
     end
-    # Space around comparison and arithmetic operators
-    if curr in (
-        TOKEN_GEQ,
-        TOKEN_LEQ,
-        TOKEN_EQ,
-        TOKEN_NEQ,
-        TOKEN_PLUS,
-        TOKEN_MINUS,
-        TOKEN_STAR,
-        TOKEN_SLASH,
-        TOKEN_CARET,
-        TOKEN_STARSTAR,
-    )
+    # Space around comparison operators always
+    if curr in _COMP_OPS || prev in _COMP_OPS
         return true
     end
-    if prev in (
-        TOKEN_GEQ,
-        TOKEN_LEQ,
-        TOKEN_EQ,
-        TOKEN_NEQ,
-        TOKEN_PLUS,
-        TOKEN_MINUS,
-        TOKEN_STAR,
-        TOKEN_SLASH,
-        TOKEN_CARET,
-        TOKEN_STARSTAR,
-    )
+    # Space around arithmetic operators in non-compact mode
+    if !compact && (curr in _ARITH_OPS || prev in _ARITH_OPS)
         return true
     end
     return false
