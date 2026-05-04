@@ -50,7 +50,10 @@ function Base.show(io::IO, model::JuMPConverter.Model)
     print(io, "function build_model(")
     kwargs = String[]
     for s in values(model.sets)
-        push!(kwargs, isnothing(s.default) ? s.name : "$(s.name) = $(s.default)")
+        push!(
+            kwargs,
+            isnothing(s.default) ? s.name : "$(s.name) = $(s.default)",
+        )
     end
     for p in values(model.parameters)
         push!(

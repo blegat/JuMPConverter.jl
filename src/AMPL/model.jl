@@ -259,13 +259,8 @@ function _parse_param!(lex::Lexer, model::JuMPConverter.Model)
                 nx = peek(lex)
                 if nx.kind in (TOKEN_SEMICOLON, TOKEN_COMMA, TOKEN_EOF)
                     break
-                elseif nx.kind == TOKEN_IDENTIFIER && nx.value in (
-                    "default",
-                    "integer",
-                    "binary",
-                    "symbolic",
-                    "in",
-                )
+                elseif nx.kind == TOKEN_IDENTIFIER && nx.value in
+                       ("default", "integer", "binary", "symbolic", "in")
                     break
                 end
                 read_token!(lex)
