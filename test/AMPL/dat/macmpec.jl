@@ -17,5 +17,5 @@ end
     isnothing(path) && continue
     model = JuMPConverter.AMPL.read_model(_mod_path(problem))
     data = JuMPConverter.AMPL.read_dat(path, model)
-    @test data isa Dict{String}
+    @test data isa Dict{Symbol}
 end

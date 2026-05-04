@@ -53,9 +53,10 @@ data = JuMPConverter.AMPL.read_dat("file.dat", model)
 jump_model = build_model(; data...)
 ```
 
-`data` is a `Dict{String,Any}` mapping each parameter or set name to a
-scalar, `Vector`, `Array`, `JuMP.Containers.DenseAxisArray`, or
-`JuMP.Containers.SparseAxisArray` depending on the declaration.
+`data` is a `Dict{Symbol,Any}` (Symbol keys so it can be splatted into
+the keyword arguments of `build_model`) mapping each parameter or set
+name to a scalar, `Vector`, `Array`, `JuMP.Containers.DenseAxisArray`,
+or `JuMP.Containers.SparseAxisArray` depending on the declaration.
 
 To read a GAMS™ model `file.gms`, do:
 ```julia

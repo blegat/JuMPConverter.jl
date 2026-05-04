@@ -31,16 +31,18 @@ function _any_parse(s::AbstractString; allow_dot::Bool = false)
 end
 
 """
-    read_dat(filename::String, model::Union{JuMPConverter.Model,Nothing} = nothing) -> Dict{String, Any}
+    read_dat(filename::String, model::Union{JuMPConverter.Model,Nothing} = nothing) -> Dict{Symbol, Any}
 
-Read an AMPL .dat file and return a dictionary mapping parameter names to their values.
+Read an AMPL .dat file and return a dictionary mapping parameter names
+(as `Symbol`s, so that the result can be splatted into `build_model`'s
+keyword arguments) to their values.
 
 # Arguments
 - `filename::String`: Path to the AMPL .dat file
 - `model`: used to determine parameter dimensionality
 
 # Returns
-- `Dict{String, Any}`: Dictionary where keys are parameter names and values are:
+- `Dict{Symbol, Any}`: Dictionary where keys are parameter names and values are:
   - Scalars: Numbers (Int or Float64)
   - 1D arrays: Vectors
   - 2D+ arrays: Multi-dimensional arrays (as nested vectors or arrays)
@@ -48,10 +50,10 @@ Read an AMPL .dat file and return a dictionary mapping parameter names to their 
 
 # Example
 ```julia
-data = read_ampl_dat("model.dat")
-S = data["S"]  # Scalar
-rho = data["rho"]  # Vector
-E = data["E"]  # 3D array
+data = read_dat("model.dat")
+S = data[:S]  # Scalar
+rho = data[:rho]  # Vector
+E = data[:E]  # 3D array
 ```
 """
 function read_dat(
@@ -59,7 +61,8 @@ function read_dat(
     model::Union{JuMPConverter.Model,Nothing} = nothing,
 )
     s = read(filename, String)
-    return parse_dat(s, model)
+    raw = parse_dat(s, model)
+    return Dict{Symbol,Any}(Symbol(k) => v for (k, v) in raw)
 end
 
 function _range(bounds::NTuple{2,Int})

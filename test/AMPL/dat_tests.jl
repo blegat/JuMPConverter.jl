@@ -370,20 +370,29 @@ end
 function test_example1_dat()
     path = joinpath(@__DIR__, "examples", "example1.dat")
     data = JuMPConverter.AMPL.read_dat(path)
-    @test data["S"] == 5
-    @test data["W"] == 4
-    @test data["H"] == 3
-    @test data["X"] == 4
-    @test haskey(data, "rho")
-    @test haskey(data, "beta")
-    @test haskey(data, "alpha")
-    @test haskey(data, "E")
-    @test haskey(data, "C")
-    @test haskey(data, "R")
-    @test haskey(data, "polyX")
-    @test isa(data["rho"], Vector)
-    @test isa(data["E"], Array)
-    @test ndims(data["E"]) == 3
+    @test data[:S] == 5
+    @test data[:W] == 4
+    @test data[:H] == 3
+    @test data[:X] == 4
+    @test haskey(data, :rho)
+    @test haskey(data, :beta)
+    @test haskey(data, :alpha)
+    @test haskey(data, :E)
+    @test haskey(data, :C)
+    @test haskey(data, :R)
+    @test haskey(data, :polyX)
+    @test isa(data[:rho], Vector)
+    @test isa(data[:E], Array)
+    @test ndims(data[:E]) == 3
+    return
+end
+
+function test_read_dat_returns_symbol_keys()
+    # Splatting `data...` into `build_model(; ...)` requires Symbol keys.
+    path = joinpath(@__DIR__, "examples", "example1.dat")
+    data = JuMPConverter.AMPL.read_dat(path)
+    @test data isa Dict{Symbol,Any}
+    @test all(k -> k isa Symbol, keys(data))
     return
 end
 
