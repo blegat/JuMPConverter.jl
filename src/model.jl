@@ -17,6 +17,7 @@ end
 
 Base.@kwdef struct Set
     name::String
+    default::Union{Nothing,String} = nothing
 end
 
 Base.@kwdef struct Variable

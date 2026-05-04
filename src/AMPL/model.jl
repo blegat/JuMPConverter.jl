@@ -251,9 +251,20 @@ function _parse_param!(lex::Lexer, model::JuMPConverter.Model)
                t.kind == TOKEN_LEQ ||
                t.kind == TOKEN_GT ||
                t.kind == TOKEN_LT
-            # param check constraint like `param T > 0;` — skip
+            # `param T > 0 default 1 integer;` — the check value sits between
+            # the comparison and the next qualifier. Skip until a qualifier
+            # keyword, comma, or semicolon.
             read_token!(lex)
-            _read_expression!(lex, (TOKEN_SEMICOLON, TOKEN_COMMA))
+            while true
+                nx = peek(lex)
+                if nx.kind in (TOKEN_SEMICOLON, TOKEN_COMMA, TOKEN_EOF)
+                    break
+                elseif nx.kind == TOKEN_IDENTIFIER && nx.value in
+                       ("default", "integer", "binary", "symbolic", "in")
+                    break
+                end
+                read_token!(lex)
+            end
             if peek(lex).kind == TOKEN_COMMA
                 read_token!(lex)
             end
@@ -343,11 +354,19 @@ Skip set declarations (not stored in model currently).
 """
 function _parse_set!(lex::Lexer, model::JuMPConverter.Model)
     name = expect!(lex, TOKEN_IDENTIFIER).value
-    push!(model, JuMPConverter.Set(; name))
-    # Skip the rest of the declaration
+    default = nothing
     while peek(lex).kind != TOKEN_SEMICOLON && peek(lex).kind != TOKEN_EOF
-        read_token!(lex)
+        t = peek(lex)
+        if t.kind == TOKEN_ASSIGN
+            read_token!(lex)
+            raw = strip(_read_expression!(lex, (TOKEN_SEMICOLON,)))
+            # AMPL set ranges use `..`; Julia's UnitRange uses `:`.
+            default = replace(String(raw), ".." => ":")
+        else
+            read_token!(lex)
+        end
     end
+    push!(model, JuMPConverter.Set(; name, default))
     return
 end
 

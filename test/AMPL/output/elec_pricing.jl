@@ -1,5 +1,17 @@
 using JuMP
-function build_model(; S, W, H, X, rho, beta, alpha, E, C, R, polyX)
+function build_model(;
+    S,
+    W,
+    H,
+    X,
+    rho = 0.0,
+    beta = 0.0,
+    alpha = 0.0,
+    E = 0.0,
+    C = 0.0,
+    R = 0.0,
+    polyX = 0.0,
+)
     model = Model()
     @variable(model, 0 <= xx <= 1)
     @variable(model, 0 <= y <= 1)

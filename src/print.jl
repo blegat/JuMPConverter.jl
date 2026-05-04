@@ -48,7 +48,19 @@ end
 function Base.show(io::IO, model::JuMPConverter.Model)
     println(io, "using JuMP")
     print(io, "function build_model(")
-    kwargs = vcat(collect(keys(model.sets)), collect(keys(model.parameters)))
+    kwargs = String[]
+    for s in values(model.sets)
+        push!(
+            kwargs,
+            isnothing(s.default) ? s.name : "$(s.name) = $(s.default)",
+        )
+    end
+    for p in values(model.parameters)
+        push!(
+            kwargs,
+            isnothing(p.default) ? p.name : "$(p.name) = $(p.default)",
+        )
+    end
     if !isempty(kwargs)
         print(io, "; ")
         join(io, kwargs, ", ")
