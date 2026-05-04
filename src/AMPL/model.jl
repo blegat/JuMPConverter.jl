@@ -520,6 +520,8 @@ function clean_expression(expr::AbstractString)
     expr = replace(expr, "complements" => "\u27c2")
     # 2./3 -> 2. / 3 otherwise Julia says it's ambiguous with broadcast
     expr = replace(expr, "./" => ". /")
+    # AMPL ranges use `..`; Julia uses `:`.
+    expr = replace(expr, ".." => ":")
     expr = _convert_complementarity(expr)
     return expr
 end
