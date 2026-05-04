@@ -57,6 +57,21 @@ end
 # precedence than `+`, so `1..3+H` becomes `1:3+H` (= `1:(3+H)`).
 _ampl_range_to_julia(s::AbstractString) = replace(s, ".." => ":")
 
+# Build the keyword-argument fragment for a parameter. For an indexed
+# parameter with a default (e.g. `param ALPHA{K} default 1.`) the default
+# must be a container indexable by the parameter's axes, otherwise
+# `ALPHA[k]` fails because the default is a scalar.
+function _format_param_kwarg(p::Parameter)
+    isnothing(p.default) && return p.name
+    if isnothing(p.axes)
+        return "$(p.name) = $(p.default)"
+    end
+    axes_strs = [_ampl_range_to_julia(a.set) for a in p.axes.axes]
+    lengths = join(["length($a)" for a in axes_strs], ", ")
+    fill_call = "fill($(p.default), $lengths)"
+    return "$(p.name) = JuMP.Containers.DenseAxisArray($fill_call, $(join(axes_strs, ", ")))"
+end
+
 function Base.show(io::IO, objective::Objective)
     if objective.sense == MOI.MAX_SENSE
         sense = "Max"
@@ -87,10 +102,7 @@ function Base.show(io::IO, model::JuMPConverter.Model)
         )
     end
     for p in values(model.parameters)
-        push!(
-            kwargs,
-            isnothing(p.default) ? p.name : "$(p.name) = $(p.default)",
-        )
+        push!(kwargs, _format_param_kwarg(p))
     end
     if !isempty(kwargs)
         print(io, "; ")

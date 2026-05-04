@@ -4,13 +4,30 @@ function build_model(;
     W,
     H,
     X,
-    rho = 0.0,
-    beta = 0.0,
-    alpha = 0.0,
-    E = 0.0,
-    C = 0.0,
-    R = 0.0,
-    polyX = 0.0,
+    rho = JuMP.Containers.DenseAxisArray(fill(0.0, length(1:S)), 1:S),
+    beta = JuMP.Containers.DenseAxisArray(fill(0.0, length(1:S)), 1:S),
+    alpha = JuMP.Containers.DenseAxisArray(fill(0.0, length(1:W)), 1:W),
+    E = JuMP.Containers.DenseAxisArray(
+        fill(0.0, length(1:S), length(1:W), length(1:H)),
+        1:S,
+        1:W,
+        1:H,
+    ),
+    C = JuMP.Containers.DenseAxisArray(
+        fill(0.0, length(1:S), length(1:W)),
+        1:S,
+        1:W,
+    ),
+    R = JuMP.Containers.DenseAxisArray(
+        fill(0.0, length(1:S), length(1:W)),
+        1:S,
+        1:W,
+    ),
+    polyX = JuMP.Containers.DenseAxisArray(
+        fill(0.0, length(1:X), length(1:(3+H))),
+        1:X,
+        1:(3+H),
+    ),
 )
     model = Model()
     @variable(model, 0 <= xx[w in 1:W, h in 1:H] <= 1)
