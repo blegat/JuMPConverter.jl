@@ -588,6 +588,31 @@ function test_sum_multi_index()
     return
 end
 
+function test_complementarity_strips_bounds_and_orders_var_last()
+    # AMPL `0 <= VAR ⟂ EXPR >= 0` becomes JuMP `EXPR ⟂ VAR`: bounds are
+    # implicit from the variable's declaration and the variable comes
+    # second (JuMP requires a single VariableRef on the right of ⟂).
+    mod = """
+    set T;
+    set K;
+    param FLEX {k in K} default 0.1;
+    param REF {t in T, k in K} default 0;
+    var x {t in T, k in K};
+    var mu {t in T, k in K} >= 0;
+    minimize obj: 0;
+    s.t. comp {t in T, k in K}: 0 <= mu[t,k] complements (x[t,k] - (1 - FLEX[k]) * REF[t,k]) >= 0;
+    """
+    model = JuMPConverter.AMPL.parse_model(mod)
+    expr = model.constraints[1].expression
+    @test !contains(expr, "0 <=")
+    @test !contains(expr, ">= 0")
+    # variable side comes last
+    @test endswith(expr, "⟂ mu[t, k]")
+    # parses as Julia
+    @test Meta.parseall("(" * expr * ")") isa Expr
+    return
+end
+
 function test_utf8_in_comment()
     # Multi-byte UTF-8 characters in comments must not crash the lexer.
     mod = """
