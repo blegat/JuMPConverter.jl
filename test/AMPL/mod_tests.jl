@@ -526,7 +526,50 @@ function test_set_declaration()
     # Sets must appear in the build_model keyword args so that splatting
     # `read_dat` output works.
     rendered = sprint(print, model)
-    @test contains(rendered, "build_model(; PRODUCTS, MACHINES, cost)")
+    @test contains(
+        rendered,
+        "build_model(; PRODUCTS, MACHINES = 1:5, cost = 0.0)",
+    )
+    return
+end
+
+function test_set_with_default_is_optional_kwarg()
+    # `set N := 1..2;` defines N in the .mod, so it should not be a
+    # required keyword argument of `build_model` — and AMPL's `..` must
+    # be translated to Julia's `:` so the default is a valid expression.
+    mod = """
+    set T;
+    set N := 1..2;
+    var x {t in T, n in N};
+    minimize obj: sum {t in T, n in N} x[t,n];
+    subject to
+    c {t in T}: sum {n in N} x[t,n] >= 0;
+    """
+    model = JuMPConverter.AMPL.parse_model(mod)
+    @test model.sets["N"].default == "1:2"
+    @test model.sets["T"].default === nothing
+    rendered = sprint(print, model)
+    @test contains(rendered, "build_model(; T, N = 1:2)")
+    return
+end
+
+function test_param_default_survives_check_constraint()
+    # `param x > 0 default 1.5;` — the `> 0` check must not swallow the
+    # `default` qualifier.
+    mod = """
+    param eps > 0 default 1e-6;
+    param lo >= 0 default 0.05;
+    var y >= 0;
+    minimize obj: y;
+    subject to
+    c1: y >= eps;
+    """
+    model = JuMPConverter.AMPL.parse_model(mod)
+    @test model.parameters["eps"].default == 1e-6
+    @test model.parameters["lo"].default == 0.05
+    rendered = sprint(print, model)
+    @test contains(rendered, "eps = 1.0e-6")
+    @test contains(rendered, "lo = 0.05")
     return
 end
 
