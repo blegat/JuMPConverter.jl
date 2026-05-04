@@ -47,14 +47,22 @@ end
 
 function Base.show(io::IO, model::JuMPConverter.Model)
     println(io, "using JuMP")
-    println(io, "model = Model()")
+    print(io, "function build_model(")
+    if !isempty(model.parameters)
+        print(io, "; ")
+        join(io, keys(model.parameters), ", ")
+    end
+    println(io, ")")
+    println(io, "    model = Model()")
     for variable in values(model.variables)
-        println(io, variable)
+        println(io, "    ", variable)
     end
     for constraint in model.constraints
-        println(io, constraint)
+        println(io, "    ", constraint)
     end
-    println(io, model.objective)
-    print(io, "optimize!(model)")
+    println(io, "    ", model.objective)
+    println(io, "    optimize!(model)")
+    println(io, "    return model")
+    print(io, "end")
     return
 end
