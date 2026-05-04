@@ -48,9 +48,10 @@ end
 function Base.show(io::IO, model::JuMPConverter.Model)
     println(io, "using JuMP")
     print(io, "function build_model(")
-    if !isempty(model.parameters)
+    kwargs = vcat(collect(keys(model.sets)), collect(keys(model.parameters)))
+    if !isempty(kwargs)
         print(io, "; ")
-        join(io, keys(model.parameters), ", ")
+        join(io, kwargs, ", ")
     end
     println(io, ")")
     println(io, "    model = Model()")
