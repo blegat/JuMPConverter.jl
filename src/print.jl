@@ -1,18 +1,23 @@
 function Base.show(io::IO, variable::Variable)
     print(io, "@variable(model, ")
+    name = variable.name * _format_axes(variable.axes)
+    lb = isnothing(variable.lower_bound) ? nothing :
+         _ampl_range_to_julia(variable.lower_bound)
+    ub = isnothing(variable.upper_bound) ? nothing :
+         _ampl_range_to_julia(variable.upper_bound)
     if !isnothing(variable.fixed_value)
-        print(io, "$(variable.name) == $(variable.fixed_value)")
+        print(io, "$name == $(_ampl_range_to_julia(variable.fixed_value))")
     else
-        if !isnothing(variable.lower_bound) && !isnothing(variable.upper_bound)
-            print(io, "$(variable.lower_bound) <= ")
+        if !isnothing(lb) && !isnothing(ub)
+            print(io, "$lb <= ")
         end
-        print(io, variable.name)
-        if isnothing(variable.upper_bound)
-            if !isnothing(variable.lower_bound)
-                print(io, " >= $(variable.lower_bound)")
+        print(io, name)
+        if isnothing(ub)
+            if !isnothing(lb)
+                print(io, " >= $lb")
             end
         else
-            print(io, " <= $(variable.upper_bound)")
+            print(io, " <= $ub")
         end
     end
     if variable.binary
@@ -23,6 +28,32 @@ function Base.show(io::IO, variable::Variable)
     print(io, ")")
     return
 end
+
+# AMPL `{t in T, k in K}` / `{T, K}` / `{t in T : cond}` becomes JuMP's
+# bracketed indexing `[t in T, k in K]` / `[T, K]` / `[t in T; cond]`.
+# Returns "" when there are no axes.
+_format_axes(::Nothing) = ""
+
+function _format_axes(axes::Axes)
+    parts = String[]
+    for axe in axes.axes
+        set = _ampl_range_to_julia(axe.set)
+        if axe.name == axe.set
+            push!(parts, set)
+        else
+            push!(parts, "$(axe.name) in $set")
+        end
+    end
+    body = join(parts, ", ")
+    if !isnothing(axes.condition)
+        body *= "; " * _ampl_range_to_julia(axes.condition)
+    end
+    return "[$body]"
+end
+
+# AMPL ranges use `..`; Julia's `UnitRange` uses `:` and has lower
+# precedence than `+`, so `1..3+H` becomes `1:3+H` (= `1:(3+H)`).
+_ampl_range_to_julia(s::AbstractString) = replace(s, ".." => ":")
 
 function Base.show(io::IO, objective::Objective)
     if objective.sense == MOI.MAX_SENSE
@@ -38,9 +69,10 @@ function Base.show(io::IO, objective::Objective)
 end
 
 function Base.show(io::IO, constraint::Constraint)
+    name = constraint.name * _format_axes(constraint.axes)
     print(
         io,
-        "@constraint(model, $(constraint.name), $(constraint.expression))",
+        "@constraint(model, $name, $(constraint.expression))",
     )
     return
 end

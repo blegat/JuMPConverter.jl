@@ -573,6 +573,46 @@ function test_param_default_survives_check_constraint()
     return
 end
 
+function test_indexed_constraint_emits_jump_brackets()
+    # AMPL `s.t. name {t in T, k in K}: expr;` must render as
+    # `@constraint(model, name[t in T, k in K], expr)` so the index
+    # variables are bound. Same for indexed variables. Set ranges
+    # written with `..` must use Julia's `:` so they parse and run.
+    mod = """
+    set T;
+    set K;
+    param REF {t in T, k in K} default 0;
+    var x {t in T, k in K} >= 0;
+    var y {i in 1..3} >= 0;
+    minimize obj: sum {t in T, k in K} x[t,k];
+    s.t. c1 {t in T, k in K}: x[t,k] >= REF[t,k];
+    s.t. c2 {i in 1..3}: y[i] <= 1;
+    """
+    model = JuMPConverter.AMPL.parse_model(mod)
+    rendered = sprint(print, model)
+    @test contains(rendered, "@variable(model, x[t in T, k in K] >= 0)")
+    @test contains(rendered, "@variable(model, y[i in 1:3] >= 0)")
+    @test contains(rendered, "@constraint(model, c1[t in T, k in K], ")
+    @test contains(rendered, "@constraint(model, c2[i in 1:3], ")
+    @test Meta.parseall(rendered) isa Expr
+    return
+end
+
+function test_constraint_axes_with_condition()
+    mod = """
+    set T;
+    param a {t in T} default 0;
+    var x {t in T} >= 0;
+    minimize obj: sum {t in T} x[t];
+    s.t. c {t in T : a[t] > 0}: x[t] >= 1;
+    """
+    model = JuMPConverter.AMPL.parse_model(mod)
+    rendered = sprint(print, model)
+    @test contains(rendered, "@constraint(model, c[t in T; a[t] > 0],")
+    @test Meta.parseall(rendered) isa Expr
+    return
+end
+
 function test_st_constraint_prefix()
     # AMPL accepts `s.t.` as shorthand for `subject to`.
     mod = """
