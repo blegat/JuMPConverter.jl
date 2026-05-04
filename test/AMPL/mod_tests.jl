@@ -528,7 +528,7 @@ function test_set_declaration()
     rendered = sprint(print, model)
     @test contains(
         rendered,
-        "build_model(; PRODUCTS, MACHINES = 1:5, cost = 0.0)",
+        "build_model(; PRODUCTS, MACHINES = 1:5, cost = JuMP.Containers.DenseAxisArray(fill(0.0, length(PRODUCTS)), PRODUCTS))",
     )
     return
 end
@@ -550,6 +550,28 @@ function test_set_with_default_is_optional_kwarg()
     @test model.sets["T"].default === nothing
     rendered = sprint(print, model)
     @test contains(rendered, "build_model(; T, N = 1:2)")
+    return
+end
+
+function test_indexed_param_default_is_indexable_container()
+    # `param ALPHA{K} default 1.0;` — when ALPHA isn't passed, the
+    # default must still be indexable by `k`, otherwise `ALPHA[k]`
+    # crashes with a scalar.
+    mod = """
+    set K;
+    param ALPHA {k in K} default 1.0;
+    var x {k in K} >= 0;
+    minimize obj: sum {k in K} ALPHA[k] * x[k];
+    subject to
+    c {k in K}: x[k] >= 0;
+    """
+    model = JuMPConverter.AMPL.parse_model(mod)
+    rendered = sprint(print, model)
+    @test contains(
+        rendered,
+        "ALPHA = JuMP.Containers.DenseAxisArray(fill(1.0, length(K)), K)",
+    )
+    @test Meta.parseall(rendered) isa Expr
     return
 end
 
