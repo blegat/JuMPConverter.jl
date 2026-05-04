@@ -15,6 +15,10 @@ Base.@kwdef struct Parameter
     default::Union{Nothing,Float64} = nothing
 end
 
+Base.@kwdef struct Set
+    name::String
+end
+
 Base.@kwdef struct Variable
     name::String
     axes::Union{Nothing,Axes} = nothing
@@ -38,18 +42,25 @@ Base.@kwdef struct Constraint
 end
 
 mutable struct Model
+    sets::OrderedCollections.OrderedDict{String,Set}
     parameters::OrderedCollections.OrderedDict{String,Parameter}
     variables::OrderedCollections.OrderedDict{String,Variable}
     objective::Union{Nothing,Objective}
     constraints::Vector{Constraint}
     function Model()
         return new(
+            OrderedCollections.OrderedDict{String,Set}(),
             OrderedCollections.OrderedDict{String,Parameter}(),
             OrderedCollections.OrderedDict{String,Variable}(),
             nothing,
             Constraint[],
         )
     end
+end
+
+function Base.push!(model::Model, set::Set)
+    model.sets[set.name] = set
+    return model
 end
 
 function Base.push!(model::Model, parameter::Parameter)

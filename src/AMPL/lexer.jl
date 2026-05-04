@@ -54,13 +54,16 @@ function Lexer(input::String)
     return Lexer(input, 1, Token[])
 end
 
+@inline _advance!(lex::Lexer) =
+    (lex.pos = nextind(lex.input, lex.pos); nothing)
+
 function _skip_whitespace_and_comments!(lex::Lexer)
     while lex.pos <= ncodeunits(lex.input)
         c = lex.input[lex.pos]
         if c == '#'
             # Skip to end of line
             while lex.pos <= ncodeunits(lex.input) && lex.input[lex.pos] != '\n'
-                lex.pos += 1
+                _advance!(lex)
             end
         elseif c == '/' &&
                lex.pos + 1 <= ncodeunits(lex.input) &&
@@ -72,10 +75,10 @@ function _skip_whitespace_and_comments!(lex::Lexer)
                     lex.pos += 2
                     break
                 end
-                lex.pos += 1
+                _advance!(lex)
             end
         elseif isspace(c)
-            lex.pos += 1
+            _advance!(lex)
         else
             return
         end
@@ -124,12 +127,12 @@ function _read_identifier!(lex::Lexer)
     while lex.pos <= ncodeunits(lex.input)
         c = lex.input[lex.pos]
         if isdigit(c) || isletter(c) || c == '_'
-            lex.pos += 1
+            _advance!(lex)
         else
             break
         end
     end
-    return Token(TOKEN_IDENTIFIER, lex.input[start:(lex.pos-1)])
+    return Token(TOKEN_IDENTIFIER, lex.input[start:prevind(lex.input, lex.pos)])
 end
 
 function _next_token!(lex::Lexer)
@@ -253,14 +256,14 @@ function _next_token!(lex::Lexer)
 end
 
 function _read_string!(lex::Lexer, quote_char::Char)
-    lex.pos += 1  # consume opening quote
+    lex.pos += 1  # consume opening quote (always ASCII)
     start = lex.pos
     while lex.pos <= ncodeunits(lex.input) && lex.input[lex.pos] != quote_char
-        lex.pos += 1
+        _advance!(lex)
     end
-    val = lex.input[start:(lex.pos-1)]
+    val = lex.input[start:prevind(lex.input, lex.pos)]
     if lex.pos <= ncodeunits(lex.input)
-        lex.pos += 1  # consume closing quote
+        lex.pos += 1  # consume closing quote (always ASCII)
     end
     return Token(TOKEN_IDENTIFIER, val)
 end

@@ -248,8 +248,10 @@ end
 Parse: `set name [within ...] [= ...] [dimen n] [ordered] ;`
 Skip set declarations (not stored in model currently).
 """
-function _parse_set!(lex::Lexer)
-    # Just consume everything until semicolon
+function _parse_set!(lex::Lexer, model::JuMPConverter.Model)
+    name = expect!(lex, TOKEN_IDENTIFIER).value
+    push!(model, JuMPConverter.Set(; name))
+    # Skip the rest of the declaration
     while peek(lex).kind != TOKEN_SEMICOLON && peek(lex).kind != TOKEN_EOF
         read_token!(lex)
     end
@@ -342,7 +344,7 @@ function parse_model(mod::AbstractString)
             _parse_var!(lex, model)
         elseif kw == "set"
             read_token!(lex)
-            _parse_set!(lex)
+            _parse_set!(lex, model)
         elseif kw == "maximize"
             read_token!(lex)
             _parse_objective!(lex, model, MOI.MAX_SENSE)
@@ -357,6 +359,20 @@ function parse_model(mod::AbstractString)
                 read_token!(lex)
             end
             # Parse first constraint if on same line (after "subject to")
+            if peek(lex).kind == TOKEN_IDENTIFIER &&
+               !_is_keyword(peek(lex).value)
+                _parse_constraint!(lex, model)
+            end
+        elseif kw == "s" &&
+               peek(lex, 2).kind == TOKEN_DOT &&
+               peek(lex, 3).kind == TOKEN_IDENTIFIER &&
+               peek(lex, 3).value == "t" &&
+               peek(lex, 4).kind == TOKEN_DOT
+            # `s.t.` constraint prefix
+            read_token!(lex)  # s
+            read_token!(lex)  # .
+            read_token!(lex)  # t
+            read_token!(lex)  # .
             if peek(lex).kind == TOKEN_IDENTIFIER &&
                !_is_keyword(peek(lex).value)
                 _parse_constraint!(lex, model)

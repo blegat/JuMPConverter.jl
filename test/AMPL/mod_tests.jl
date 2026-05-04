@@ -510,21 +510,54 @@ function test_integer_variable()
 end
 
 function test_set_declaration()
-    # Sets are not currently parsed by the .mod parser
     mod = """
     set PRODUCTS;
+    set MACHINES := 1..5;
     param cost {PRODUCTS} default 0;
     var Buy {PRODUCTS} >= 0;
     minimize total: sum {p in PRODUCTS} cost[p] * Buy[p];
     subject to
     budget: sum {p in PRODUCTS} cost[p] * Buy[p] <= 100;
     """
-    try
-        model = JuMPConverter.AMPL.parse_model(mod)
-        @test haskey(model.variables, "Buy")
-    catch
-        @test_broken false
-    end
+    model = JuMPConverter.AMPL.parse_model(mod)
+    @test haskey(model.variables, "Buy")
+    @test haskey(model.sets, "PRODUCTS")
+    @test haskey(model.sets, "MACHINES")
+    # Sets must appear in the build_model keyword args so that splatting
+    # `read_dat` output works.
+    rendered = sprint(print, model)
+    @test contains(rendered, "build_model(; PRODUCTS, MACHINES, cost)")
+    return
+end
+
+function test_st_constraint_prefix()
+    # AMPL accepts `s.t.` as shorthand for `subject to`.
+    mod = """
+    param n integer;
+    var x {i in 1..n} >= 0;
+    maximize obj: sum {i in 1..n} x[i];
+    s.t. c1 {i in 1..n}: x[i] <= 10;
+    s.t. c2: sum {i in 1..n} x[i] <= 100;
+    """
+    model = JuMPConverter.AMPL.parse_model(mod)
+    @test length(model.constraints) == 2
+    @test model.constraints[1].name == "c1"
+    @test model.constraints[2].name == "c2"
+    return
+end
+
+function test_utf8_in_comment()
+    # Multi-byte UTF-8 characters in comments must not crash the lexer.
+    mod = """
+    param price >= 0;  # Cost in € per unit
+    var x >= 0;
+    maximize obj: price * x;  # objective in €
+    subject to
+    c1: x <= 10;
+    """
+    model = JuMPConverter.AMPL.parse_model(mod)
+    @test haskey(model.parameters, "price")
+    @test length(model.constraints) == 1
     return
 end
 
