@@ -650,10 +650,7 @@ function test_generated_file_has_dat_loader()
     rendered = sprint(print, model)
     @test contains(rendered, "function build_model(;")
     @test contains(rendered, "function build_model(dat_path::String)")
-    @test contains(
-        rendered,
-        "JuMPConverter.AMPL.DatSchema(Dict{Symbol,Int}(",
-    )
+    @test contains(rendered, "JuMPConverter.AMPL.DatSchema(Dict{Symbol,Int}(")
     @test contains(rendered, ":ALPHA => 1")
     @test contains(rendered, "build_model(; data...)")
     @test Meta.parseall(rendered) isa Expr

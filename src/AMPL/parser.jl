@@ -43,7 +43,9 @@ struct DatSchema
     param_ndims::Dict{Symbol,Int}
 end
 
-DatSchema(d::AbstractDict) = DatSchema(Dict{Symbol,Int}(Symbol(k) => v for (k, v) in d))
+function DatSchema(d::AbstractDict)
+    return DatSchema(Dict{Symbol,Int}(Symbol(k) => v for (k, v) in d))
+end
 
 function DatSchema(model::JuMPConverter.Model)
     nd = Dict{Symbol,Int}()
@@ -72,16 +74,14 @@ inference).
   - 2D+ arrays: Multi-dimensional arrays (as nested vectors or arrays)
   - Sets: Vectors
 """
-function read_dat(
-    filename::String,
-    schema::Union{Nothing,DatSchema} = nothing,
-)
+function read_dat(filename::String, schema::Union{Nothing,DatSchema} = nothing)
     raw = parse_dat(read(filename, String), schema)
     return Dict{Symbol,Any}(Symbol(k) => v for (k, v) in raw)
 end
 
-read_dat(filename::String, model::JuMPConverter.Model) =
-    read_dat(filename, DatSchema(model))
+function read_dat(filename::String, model::JuMPConverter.Model)
+    return read_dat(filename, DatSchema(model))
+end
 
 function _range(bounds::NTuple{2,Int})
     if bounds[1] == 1
@@ -152,7 +152,9 @@ Number of indexing dimensions for a parameter, or `nothing` when no
 schema is supplied or the parameter is not in the schema.
 """
 _param_ndims(::Nothing, ::AbstractString) = nothing
-_param_ndims(s::DatSchema, name::AbstractString) = get(s.param_ndims, Symbol(name), nothing)
+function _param_ndims(s::DatSchema, name::AbstractString)
+    return get(s.param_ndims, Symbol(name), nothing)
+end
 
 """
     _read_dat_value!(lex::Lexer)
@@ -612,10 +614,7 @@ Parse AMPL .dat content using the tokenizer. Uses schema info to determine
 parameter dimensionality. Pass a `DatSchema`, a `JuMPConverter.Model`
 (converted to a `DatSchema`), or `nothing` (heuristic).
 """
-function parse_dat(
-    text::String,
-    schema::Union{Nothing,DatSchema} = nothing,
-)
+function parse_dat(text::String, schema::Union{Nothing,DatSchema} = nothing)
     data = Dict{String,Any}()
     lex = Lexer(text)
     while peek(lex).kind != TOKEN_EOF
@@ -680,5 +679,6 @@ function parse_dat(
     return data
 end
 
-parse_dat(text::String, model::JuMPConverter.Model) =
-    parse_dat(text, DatSchema(model))
+function parse_dat(text::String, model::JuMPConverter.Model)
+    return parse_dat(text, DatSchema(model))
+end
