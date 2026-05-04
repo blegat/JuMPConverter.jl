@@ -387,6 +387,40 @@ function test_example1_dat()
     return
 end
 
+function test_2d_param_list_form_builds_matrix()
+    # AMPL `param P := i j v ...` over a 2D parameter must produce a
+    # `Matrix` indexable as `P[i, j]`, not a flat `Vector`.
+    mod = """
+    set T;
+    set K;
+    param REF {t in T, k in K};
+    var x {t in T, k in K};
+    minimize obj: sum {t in T, k in K} x[t,k];
+    subject to
+    c {t in T, k in K}: x[t,k] >= REF[t,k];
+    """
+    dat = """
+    set T := 1 2 3;
+    set K := 1 2;
+    param REF :=
+    1 1 11.0
+    1 2 12.0
+    2 1 21.0
+    2 2 22.0
+    3 1 31.0
+    3 2 32.0
+    ;
+    """
+    data = parse_dat(dat, mod)
+    P = data["REF"]
+    @test P isa Matrix{Float64}
+    @test size(P) == (3, 2)
+    @test P[1, 1] == 11.0
+    @test P[2, 1] == 21.0
+    @test P[3, 2] == 32.0
+    return
+end
+
 function test_read_dat_returns_symbol_keys()
     # Splatting `data...` into `build_model(; ...)` requires Symbol keys.
     path = joinpath(@__DIR__, "examples", "example1.dat")
