@@ -15,6 +15,5 @@ function build_model()
     @constraint(model, c5, 9.300961 + 0.0047026*x3*x5 + 0.0012547*x1*x3 + 0.0019085*x3*x4 >= 20)
     @constraint(model, c6, 9.300961 + 0.0047026*x3*x5 + 0.0012547*x1*x3 + 0.0019085*x3*x4 <= 25)
     @objective(model, Min, obj)
-    optimize!(model)
     return model
 end

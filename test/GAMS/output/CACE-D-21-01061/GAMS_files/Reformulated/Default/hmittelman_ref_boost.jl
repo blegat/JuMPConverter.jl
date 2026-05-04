@@ -68,6 +68,5 @@ function build_model()
     @constraint(model, E24, - X31 + Y18*Y19 == 0)
     @constraint(model, E25, objvar == X0)
     @objective(model, Min, objvar)
-    optimize!(model)
     return model
 end

@@ -9,6 +9,5 @@ function build_model()
     @constraint(model, land, Xcorn +      Xwheat +       Xcotton <= 100)
     @constraint(model, labor, 6 * Xcorn +  4 * Xwheat +   8 * Xcotton <= 500)
     @objective(model, Max, Z)
-    optimize!(model)
     return model
 end

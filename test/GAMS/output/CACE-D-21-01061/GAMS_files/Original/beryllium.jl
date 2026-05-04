@@ -11,6 +11,5 @@ function build_model()
     @constraint(model, c2, c12*c12 + c22*c22 + 2*c12*c22*0.259517 == 1)
     @constraint(model, c3, c11*c12 + c21*c22 + (c11*c22 + c21*c12)*0.259517 == 0)
     @objective(model, Min, obj)
-    optimize!(model)
     return model
 end

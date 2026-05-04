@@ -29,6 +29,5 @@ function build_model()
     @constraint(model, c12, (x4*x9+1000*x3)*x11 == 1)
     @constraint(model, c13, x1*x12 == 1)
     @objective(model, Min, obj)
-    optimize!(model)
     return model
 end

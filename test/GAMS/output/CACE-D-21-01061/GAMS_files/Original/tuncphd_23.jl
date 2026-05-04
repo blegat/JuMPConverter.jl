@@ -10,6 +10,5 @@ function build_model()
     @constraint(model, c1, x1*x2*x3*x4-25 >= 0)
     @constraint(model, c2, x1*x1 + x2*x2 + x3*x3 + x4*x4 - 40 == 0)
     @objective(model, Min, obj)
-    optimize!(model)
     return model
 end

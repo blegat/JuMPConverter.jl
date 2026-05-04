@@ -117,7 +117,6 @@ function Base.show(io::IO, model::JuMPConverter.Model)
         println(io, "    ", constraint)
     end
     println(io, "    ", model.objective)
-    println(io, "    optimize!(model)")
     println(io, "    return model")
     print(io, "end")
     return

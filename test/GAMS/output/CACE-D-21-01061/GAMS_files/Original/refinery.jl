@@ -1208,6 +1208,5 @@ function build_model()
         - 38*x35 - 36*x36 - 32*x37 - 129*x38 + x598 - 1.26*x600 - 2.913*x601
         - 2.19*x602 == 0)
     @objective(model, Min, x598)
-    optimize!(model)
     return model
 end

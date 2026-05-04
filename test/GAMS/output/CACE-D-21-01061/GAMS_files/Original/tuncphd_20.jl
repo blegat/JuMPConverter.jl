@@ -8,6 +8,5 @@ function build_model()
     @constraint(model, c1, -x1+x2-8 <= 0)
     @constraint(model, c2, x2-x1*x1-2*x1+2 <= 0)
     @objective(model, Min, obj)
-    optimize!(model)
     return model
 end
