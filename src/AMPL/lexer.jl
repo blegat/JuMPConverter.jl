@@ -54,8 +54,7 @@ function Lexer(input::String)
     return Lexer(input, 1, Token[])
 end
 
-@inline _advance!(lex::Lexer) =
-    (lex.pos = nextind(lex.input, lex.pos); nothing)
+@inline _advance!(lex::Lexer) = (lex.pos = nextind(lex.input, lex.pos); nothing)
 
 function _skip_whitespace_and_comments!(lex::Lexer)
     while lex.pos <= ncodeunits(lex.input)
