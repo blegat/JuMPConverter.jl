@@ -570,8 +570,7 @@ function test_sum_without_parens_body()
     maximize obj: sum{t in T} c[t] * x[t] - y;
     """
     model = JuMPConverter.AMPL.parse_model(mod)
-    @test model.objective.expression ==
-          "sum(c[t] * x[t] for t in T) - y"
+    @test model.objective.expression == "sum(c[t] * x[t] for t in T) - y"
     @test Meta.parseall("(" * model.objective.expression * ")") isa Expr
     return
 end
@@ -584,8 +583,7 @@ function test_sum_multi_index()
     maximize obj: sum{t in T, k in K} x[t,k];
     """
     model = JuMPConverter.AMPL.parse_model(mod)
-    @test model.objective.expression ==
-          "sum(x[t, k] for t in T, k in K)"
+    @test model.objective.expression == "sum(x[t, k] for t in T, k in K)"
     @test Meta.parseall("(" * model.objective.expression * ")") isa Expr
     return
 end
