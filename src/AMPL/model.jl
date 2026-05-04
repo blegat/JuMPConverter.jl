@@ -500,5 +500,41 @@ end
 function clean_expression(expr::AbstractString)
     expr = replace(expr, "complements" => "\u27c2")
     # 2./3 -> 2. / 3 otherwise Julia says it's ambiguous with broadcast
-    return replace(expr, "./" => ". /")
+    expr = replace(expr, "./" => ". /")
+    expr = _convert_complementarity(expr)
+    return expr
+end
+
+# AMPL writes complementarity as `LB <= LHS \u27c2 RHS >= UB` with explicit
+# bounds. JuMP's `@constraint(model, expr \u27c2 var)` takes a single variable
+# on the right and infers bounds from its declaration. Strip the redundant
+# bounds and put the simple variable side last.
+function _convert_complementarity(expr::AbstractString)
+    contains(expr, "\u27c2") || return expr
+    parts = split(expr, "\u27c2")
+    length(parts) == 2 || return expr
+    lhs = _strip_complementarity_lb(strip(parts[1]))
+    rhs = _strip_complementarity_ub(strip(parts[2]))
+    if !_is_simple_variable_ref(lhs) && _is_simple_variable_ref(rhs)
+        return "$lhs \u27c2 $rhs"
+    elseif _is_simple_variable_ref(lhs) && !_is_simple_variable_ref(rhs)
+        return "$rhs \u27c2 $lhs"
+    end
+    return "$lhs \u27c2 $rhs"
+end
+
+function _strip_complementarity_lb(s::AbstractString)
+    m = match(r"^0\s*<=\s*(.*)$"s, s)
+    return m === nothing ? String(s) : strip(m.captures[1])
+end
+
+function _strip_complementarity_ub(s::AbstractString)
+    m = match(r"^(.*?)\s*>=\s*0\s*$"s, s)
+    inner = m === nothing ? String(s) : strip(m.captures[1])
+    return _strip_outer_parens(inner)
+end
+
+function _is_simple_variable_ref(s::AbstractString)
+    return match(r"^[A-Za-z_][A-Za-z0-9_]*(\[[^\[\]]*\])?$", strip(s)) !==
+           nothing
 end

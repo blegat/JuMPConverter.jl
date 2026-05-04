@@ -21,13 +21,10 @@ function build_model(; S, W, H, X, rho, beta, alpha, E, C, R, polyX)
     @constraint(
         model,
         KKT1,
-        0 <=
         sum(E[s, w, h] * xx[w, h] for h in 1..H) + mu[s] - R[s, w] +
-        2.0 / beta[s] * (y[s, w] - y[s, 0]) ⟂
-        y[s, w] >=
-        0
+        2.0 / beta[s] * (y[s, w] - y[s, 0]) ⟂ y[s, w]
     )
-    @constraint(model, KKT2, 0 <= mu[s] ⟂ y[s, 0] >= 0)
+    @constraint(model, KKT2, mu[s] ⟂ y[s, 0])
     @constraint(
         model,
         coupl,
