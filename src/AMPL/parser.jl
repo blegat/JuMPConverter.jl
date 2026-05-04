@@ -304,10 +304,46 @@ function _dat_parse_param_values!(
             result[idx] = Float64(val)
         end
         data[name] = result
+    elseif !isnothing(ndims) && ndims >= 2
+        data[name] = _build_nd_container(values, ndims)
     else
         data[name] = length(values) == 1 ? values[1] : values
     end
     return
+end
+
+# Read groups of `ndims` indices + 1 value from a flat list of tokens and
+# return either a dense `Array{Float64,N}` (when indices form a complete
+# 1:n_i grid for each dimension) or a `JuMP.Containers.SparseAxisArray`
+# (when indices are sparse or not 1-based).
+function _build_nd_container(values::Vector, ndims::Int)
+    stride = ndims + 1
+    @assert length(values) % stride == 0 "param values length $(length(values)) is not a multiple of $(ndims+1)"
+    n = div(length(values), stride)
+    indices = Vector{NTuple{ndims,Int}}(undef, n)
+    vals = Vector{Float64}(undef, n)
+    for r in 1:n
+        base = (r - 1) * stride
+        idx = ntuple(d -> Int(values[base+d]), ndims)
+        indices[r] = idx
+        vals[r] = Float64(values[base+ndims+1])
+    end
+    axes_tuple = _axes(indices)
+    sz = length.(axes_tuple)
+    is_dense = all(a -> a isa Base.OneTo, axes_tuple) && n == prod(sz)
+    if is_dense
+        arr = Array{Float64,ndims}(undef, sz...)
+        fill!(arr, NaN)
+        for r in 1:n
+            arr[indices[r]...] = vals[r]
+        end
+        return arr
+    end
+    dict = OrderedCollections.OrderedDict{NTuple{ndims,Int},Float64}()
+    for r in 1:n
+        dict[indices[r]] = vals[r]
+    end
+    return JuMP.Containers.SparseAxisArray(dict)
 end
 
 """
