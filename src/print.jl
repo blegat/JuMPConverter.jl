@@ -47,10 +47,12 @@ end
 
 function Base.show(io::IO, model::JuMPConverter.Model)
     println(io, "using JuMP")
-    print(io, "function build_model(; ")
-    join(io, keys(model.parameters), ", ")
-    isempty(model.parameters) || print(io, ", ")
-    println(io, "_kwargs...)")
+    print(io, "function build_model(")
+    if !isempty(model.parameters)
+        print(io, "; ")
+        join(io, keys(model.parameters), ", ")
+    end
+    println(io, ")")
     println(io, "    model = Model()")
     for variable in values(model.variables)
         println(io, "    ", variable)

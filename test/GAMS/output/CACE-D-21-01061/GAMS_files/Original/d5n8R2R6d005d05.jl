@@ -1,5 +1,5 @@
 using JuMP
-function build_model(; _kwargs...)
+function build_model()
     model = Model()
     @variable(model, 0.4 <= x1 <= 2.19)
     @variable(model, 0.07 <= x2 <= 2.87)

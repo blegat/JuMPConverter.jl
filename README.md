@@ -34,10 +34,9 @@ model = JuMPConverter.AMPL.read_model("file.mof")
 
 AMPL keeps the model structure (`.mod`) and the data (`.dat`) in
 separate files. The emitted Julia file defines a `build_model` function
-whose keyword arguments are the AMPL parameters declared in the `.mod`,
-plus a trailing `_kwargs...` to absorb any extras. To populate the
-model, parse the data with `read_dat` (passing the model so each
-parameter's dimensionality is resolved correctly) and splat the
+whose keyword arguments are the AMPL parameters declared in the `.mod`.
+To populate the model, parse the data with `read_dat` (passing the model
+so each parameter's dimensionality is resolved correctly) and splat the
 resulting dictionary into `build_model`:
 
 ```julia
@@ -47,7 +46,7 @@ open("file.jl", "w") do io
     println(io, model)
 end
 
-# In file.jl: `function build_model(; S, W, ..., _kwargs...) ... end`
+# In file.jl: `function build_model(; S, W, ...) ... end`
 include("file.jl")
 
 data = JuMPConverter.AMPL.read_dat("file.dat", model)

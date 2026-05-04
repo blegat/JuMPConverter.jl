@@ -1,5 +1,5 @@
 using JuMP
-function build_model(; _kwargs...)
+function build_model()
     model = Model()
     @variable(model, Xcorn >= 0)
     @variable(model, Xwheat >= 0)
