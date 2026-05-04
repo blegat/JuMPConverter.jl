@@ -67,6 +67,5 @@ function build_model(;
         sum(rho[s] * (2.0 / beta[s] * y[s, 0] - mu[s]) for s in 1:S) -
         10 * sum(eta[w] for w in 1:W)
     )
-    optimize!(model)
     return model
 end

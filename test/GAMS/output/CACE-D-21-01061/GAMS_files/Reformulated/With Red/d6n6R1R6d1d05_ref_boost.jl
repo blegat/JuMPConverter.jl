@@ -7175,6 +7175,5 @@ function build_model()
     @constraint(model, E7075, SQR(X74) + 2*X74*X75 + SQR(X75) >= 0)
     @constraint(model, E7076, objvar == X0)
     @objective(model, Min, objvar)
-    optimize!(model)
     return model
 end

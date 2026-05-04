@@ -9,6 +9,5 @@ function build_model()
     @constraint(model, c1, x1*x1*x2 -675 <= 0)
     @constraint(model, c2, x1*x1*x3*x3 <= 0.419*1e7)
     @objective(model, Min, obj)
-    optimize!(model)
     return model
 end

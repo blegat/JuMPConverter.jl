@@ -12,6 +12,5 @@ function build_model()
     @variable(model, obj)
     @constraint(model, ob, ((x1*x1*x1 + x2*x2*x2 + x3*x3*x3 + x4*x4*x4 + x5*x5*x5 + x6*x6*x6 + x7*x7*x7 + x8*x8*x8))^(2) - ((x1*x1*x1*x1 + x2*x2*x2*x2 + x3*x3*x3*x3 + x4*x4*x4*x4 + x5*x5*x5*x5 + x6*x6*x6*x6 + x7*x7*x7*x7 + x8*x8*x8*x8)*(x1*x1 + x2*x2 + x3*x3 + x4*x4 + x5*x5 + x6*x6 + x7*x7 + x8*x8)) == obj)
     @objective(model, Min, obj)
-    optimize!(model)
     return model
 end

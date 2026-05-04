@@ -15,6 +15,5 @@ function build_model()
     @constraint(model, e5, x1^3 - y1^5 == 0)
     @constraint(model, e6, x2^3 - y2^5 == 0)
     @objective(model, Min, objvar)
-    optimize!(model)
     return model
 end

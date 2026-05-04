@@ -23,6 +23,5 @@ function build_model()
     @constraint(model, E7, - X6 + 0.0012547*X7*X9 + 0.0019085*X9*X10 + 0.0047026*X9*X11 == 15.699)
     @constraint(model, E8, objvar == X0)
     @objective(model, Min, objvar)
-    optimize!(model)
     return model
 end
