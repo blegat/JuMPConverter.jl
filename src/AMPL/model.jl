@@ -91,6 +91,18 @@ function _read_expression!(lex::Lexer, stops::NTuple{N,TokenKind}) where {N}
         if t.kind in stops || t.kind == TOKEN_EOF
             break
         end
+        # AMPL `sum {idx} body` / `prod {idx} body` → Julia generator syntax.
+        if t.kind == TOKEN_IDENTIFIER &&
+           (t.value == "sum" || t.value == "prod") &&
+           peek(lex, 2).kind == TOKEN_LBRACE
+            read_token!(lex)  # consume sum/prod
+            if !isempty(parts) && _needs_space(prev_kind, t.kind)
+                push!(parts, " ")
+            end
+            push!(parts, _read_summation!(lex, t.value, stops))
+            prev_kind = TOKEN_RPAREN
+            continue
+        end
         read_token!(lex)
         val = t.value
         # Insert spacing intelligently
@@ -117,8 +129,7 @@ function _read_expression!(lex::Lexer, stops::NTuple{N,TokenKind}) where {N}
             prev_kind = TOKEN_RBRACKET
         elseif t.kind == TOKEN_LPAREN
             push!(parts, "(")
-            inner = read_balanced!(lex, TOKEN_LPAREN, TOKEN_RPAREN)
-            push!(parts, inner)
+            push!(parts, _read_paren_contents!(lex))
             push!(parts, ")")
             prev_kind = TOKEN_RPAREN
         else
@@ -127,6 +138,88 @@ function _read_expression!(lex::Lexer, stops::NTuple{N,TokenKind}) where {N}
         end
     end
     return join(parts)
+end
+
+# Read tokens up to a matching `)`, treating commas as argument separators
+# so each argument is itself processed by `_read_expression!` (and gets sum
+# expansion).
+function _read_paren_contents!(lex::Lexer)
+    args = String[]
+    while true
+        seg = _read_expression!(lex, (TOKEN_RPAREN, TOKEN_COMMA))
+        push!(args, seg)
+        if peek(lex).kind == TOKEN_COMMA
+            read_token!(lex)
+        else
+            break
+        end
+    end
+    expect!(lex, TOKEN_RPAREN)
+    return join(args, ", ")
+end
+
+const _SUM_TERMINATORS = (
+    TOKEN_PLUS,
+    TOKEN_MINUS,
+    TOKEN_EQ,
+    TOKEN_GEQ,
+    TOKEN_LEQ,
+    TOKEN_LT,
+    TOKEN_GT,
+    TOKEN_NEQ,
+    TOKEN_AND,
+    TOKEN_OR,
+    TOKEN_COMMA,
+    TOKEN_RPAREN,
+    TOKEN_RBRACE,
+    TOKEN_RBRACKET,
+)
+
+# Read `sum {IDX} BODY` and return Julia text `sum(BODY for IDX)`.
+# `sum` has already been consumed; `{` is the next token.
+function _read_summation!(lex::Lexer, op::String, outer_stops)
+    expect!(lex, TOKEN_LBRACE)
+    idx = read_balanced!(lex, TOKEN_LBRACE, TOKEN_RBRACE)
+    # AMPL `sum` binds at multiplicative precedence: body extends through
+    # `*`, `/`, `^` and indexing/parens but stops at `+`, `-`, comparisons,
+    # commas, or the outer expression's stop tokens.
+    body_stops = (outer_stops..., _SUM_TERMINATORS...)
+    body = strip(_read_expression!(lex, body_stops))
+    body = _strip_outer_parens(body)
+    idx = _ampl_index_to_julia(idx)
+    return "$op($body for $idx)"
+end
+
+function _strip_outer_parens(s::AbstractString)
+    (startswith(s, "(") && endswith(s, ")")) || return s
+    depth = 0
+    for (i, c) in enumerate(s)
+        if c == '('
+            depth += 1
+        elseif c == ')'
+            depth -= 1
+            if depth == 0 && i < lastindex(s)
+                return s
+            end
+        end
+    end
+    return strip(s[(nextind(s, 1)):prevind(s, lastindex(s))])
+end
+
+# Translate AMPL index syntax to Julia generator syntax: a `:` that
+# separates the index from a condition becomes ` if `.
+function _ampl_index_to_julia(idx::AbstractString)
+    depth = 0
+    for (i, c) in enumerate(idx)
+        if c in ('(', '[', '{')
+            depth += 1
+        elseif c in (')', ']', '}')
+            depth -= 1
+        elseif c == ':' && depth == 0
+            return string(strip(idx[1:(i-1)]), " if ", strip(idx[(i+1):end]))
+        end
+    end
+    return String(idx)
 end
 
 """

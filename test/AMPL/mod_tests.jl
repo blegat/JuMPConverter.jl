@@ -546,6 +546,48 @@ function test_st_constraint_prefix()
     return
 end
 
+function test_sum_with_parens_body()
+    # AMPL `sum{IDX}(BODY)` → Julia `sum(BODY for IDX)`.
+    mod = """
+    set T;
+    var x {t in T};
+    maximize obj: sum{t in T}(x[t]);
+    """
+    model = JuMPConverter.AMPL.parse_model(mod)
+    @test model.objective.expression == "sum(x[t] for t in T)"
+    @test Meta.parseall("(" * model.objective.expression * ")") isa Expr
+    return
+end
+
+function test_sum_without_parens_body()
+    # AMPL `sum{IDX} a*b` binds at multiplicative precedence — body is the
+    # multiplication chain, then `-` ends the sum.
+    mod = """
+    set T;
+    param c {t in T} default 1;
+    var x {t in T};
+    var y;
+    maximize obj: sum{t in T} c[t] * x[t] - y;
+    """
+    model = JuMPConverter.AMPL.parse_model(mod)
+    @test model.objective.expression == "sum(c[t] * x[t] for t in T) - y"
+    @test Meta.parseall("(" * model.objective.expression * ")") isa Expr
+    return
+end
+
+function test_sum_multi_index()
+    mod = """
+    set T;
+    set K;
+    var x {t in T, k in K};
+    maximize obj: sum{t in T, k in K} x[t,k];
+    """
+    model = JuMPConverter.AMPL.parse_model(mod)
+    @test model.objective.expression == "sum(x[t, k] for t in T, k in K)"
+    @test Meta.parseall("(" * model.objective.expression * ")") isa Expr
+    return
+end
+
 function test_utf8_in_comment()
     # Multi-byte UTF-8 characters in comments must not crash the lexer.
     mod = """
