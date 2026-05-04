@@ -635,6 +635,48 @@ function test_constraint_axes_with_condition()
     return
 end
 
+function test_generated_file_has_dat_loader()
+    # When the model has parameters, `Base.show` must emit both the
+    # kwarg and the dat-path build_model methods, and the file must
+    # parse as Julia.
+    mod = """
+    set K;
+    param ALPHA {k in K} default 1.0;
+    var x {k in K} >= 0;
+    minimize obj: sum {k in K} ALPHA[k] * x[k];
+    s.t. c {k in K}: x[k] >= 0;
+    """
+    model = JuMPConverter.AMPL.parse_model(mod)
+    rendered = sprint(print, model)
+    @test contains(rendered, "function build_model(;")
+    @test contains(rendered, "function build_model(dat_path::String)")
+    @test contains(
+        rendered,
+        "JuMPConverter.AMPL.DatSchema(Dict{String,Int}(",
+    )
+    @test contains(rendered, "\"ALPHA\" => 1")
+    @test contains(rendered, "build_model(; data...)")
+    @test Meta.parseall(rendered) isa Expr
+    return
+end
+
+function test_no_dat_loader_when_no_parameters()
+    # GAMS-derived models (and any AMPL model with no `param`
+    # declarations) must not get the dat loader — there's no schema
+    # to embed and no `.dat` to consume.
+    mod = """
+    var x >= 0;
+    minimize obj: x;
+    s.t. c: x >= 1;
+    """
+    model = JuMPConverter.AMPL.parse_model(mod)
+    rendered = sprint(print, model)
+    @test contains(rendered, "function build_model(")
+    @test !contains(rendered, "build_model(dat_path::String)")
+    @test !contains(rendered, "DatSchema")
+    return
+end
+
 function test_st_constraint_prefix()
     # AMPL accepts `s.t.` as shorthand for `subject to`.
     mod = """

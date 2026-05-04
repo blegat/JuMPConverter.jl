@@ -421,6 +421,25 @@ function test_2d_param_list_form_builds_matrix()
     return
 end
 
+function test_dat_schema_redirects_through_model()
+    # `read_dat(path, model)` is a thin convenience that derives a
+    # `DatSchema` from the model and delegates. The two paths must
+    # produce the same dictionary so the generated `.jl` file
+    # (which embeds a hard-coded `DatSchema`) matches the model-loaded
+    # workflow exactly.
+    path = joinpath(@__DIR__, "examples", "example1.dat")
+    model = JuMPConverter.AMPL.read_model(
+        joinpath(@__DIR__, "input", "elec_pricing.mod"),
+    )
+    schema = JuMPConverter.AMPL.DatSchema(model)
+    @test schema isa JuMPConverter.AMPL.DatSchema
+    @test schema.param_ndims["S"] == 0
+    @test schema.param_ndims["E"] == 3
+    @test JuMPConverter.AMPL.read_dat(path, model) ==
+          JuMPConverter.AMPL.read_dat(path, schema)
+    return
+end
+
 function test_read_dat_returns_symbol_keys()
     # Splatting `data...` into `build_model(; ...)` requires Symbol keys.
     path = joinpath(@__DIR__, "examples", "example1.dat")
