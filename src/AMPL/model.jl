@@ -343,11 +343,17 @@ Skip set declarations (not stored in model currently).
 """
 function _parse_set!(lex::Lexer, model::JuMPConverter.Model)
     name = expect!(lex, TOKEN_IDENTIFIER).value
-    push!(model, JuMPConverter.Set(; name))
-    # Skip the rest of the declaration
+    default = nothing
     while peek(lex).kind != TOKEN_SEMICOLON && peek(lex).kind != TOKEN_EOF
-        read_token!(lex)
+        t = peek(lex)
+        if t.kind == TOKEN_ASSIGN
+            read_token!(lex)
+            default = strip(_read_expression!(lex, (TOKEN_SEMICOLON,)))
+        else
+            read_token!(lex)
+        end
     end
+    push!(model, JuMPConverter.Set(; name, default))
     return
 end
 
