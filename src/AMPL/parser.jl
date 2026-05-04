@@ -40,15 +40,15 @@ and embedded in the generated `.jl` file so that loading a `.dat` at
 runtime does not require keeping the `.mod` around.
 """
 struct DatSchema
-    param_ndims::Dict{String,Int}
+    param_ndims::Dict{Symbol,Int}
 end
 
-DatSchema(d::AbstractDict) = DatSchema(Dict{String,Int}(d))
+DatSchema(d::AbstractDict) = DatSchema(Dict{Symbol,Int}(Symbol(k) => v for (k, v) in d))
 
 function DatSchema(model::JuMPConverter.Model)
-    nd = Dict{String,Int}()
+    nd = Dict{Symbol,Int}()
     for (name, p) in model.parameters
-        nd[name] = isnothing(p.axes) ? 0 : length(p.axes.axes)
+        nd[Symbol(name)] = isnothing(p.axes) ? 0 : length(p.axes.axes)
     end
     return DatSchema(nd)
 end
@@ -152,7 +152,7 @@ Number of indexing dimensions for a parameter, or `nothing` when no
 schema is supplied or the parameter is not in the schema.
 """
 _param_ndims(::Nothing, ::AbstractString) = nothing
-_param_ndims(s::DatSchema, name::AbstractString) = get(s.param_ndims, name, nothing)
+_param_ndims(s::DatSchema, name::AbstractString) = get(s.param_ndims, Symbol(name), nothing)
 
 """
     _read_dat_value!(lex::Lexer)

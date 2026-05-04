@@ -121,6 +121,7 @@ function Base.show(io::IO, model::JuMPConverter.Model)
     print(io, "end")
     if !isempty(model.parameters)
         println(io)
+        println(io)
         _print_dat_loader(io, model)
     end
     return
@@ -134,10 +135,10 @@ function _print_dat_loader(io::IO, model::JuMPConverter.Model)
     println(io, "function build_model(dat_path::String)")
     println(io, "    data = JuMPConverter.AMPL.read_dat(")
     println(io, "        dat_path,")
-    println(io, "        JuMPConverter.AMPL.DatSchema(Dict{String,Int}(")
+    println(io, "        JuMPConverter.AMPL.DatSchema(Dict{Symbol,Int}(")
     for (name, p) in model.parameters
         nd = isnothing(p.axes) ? 0 : length(p.axes.axes)
-        println(io, "            \"$name\" => $nd,")
+        println(io, "            :$name => $nd,")
     end
     println(io, "        )),")
     println(io, "    )")

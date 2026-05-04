@@ -433,8 +433,8 @@ function test_dat_schema_redirects_through_model()
     )
     schema = JuMPConverter.AMPL.DatSchema(model)
     @test schema isa JuMPConverter.AMPL.DatSchema
-    @test schema.param_ndims["S"] == 0
-    @test schema.param_ndims["E"] == 3
+    @test schema.param_ndims[:S] == 0
+    @test schema.param_ndims[:E] == 3
     @test JuMPConverter.AMPL.read_dat(path, model) ==
           JuMPConverter.AMPL.read_dat(path, schema)
     return
