@@ -1,10 +1,13 @@
 using JuMP
-model = Model()
-@variable(model, 0 <= x <= 3)
-@variable(model, 0 <= y <= 4)
-@variable(model, obj)
-@constraint(model, ob, -x-y == obj)
-@constraint(model, c1, y <= 2*(x)^(4) - 8*(x)^(3) + 8*x*x + 2)
-@constraint(model, c2, y <= 4*(x)^(4) - 32*(x)^(3) + 88*x*x -96*x + 36)
-@objective(model, Min, obj)
-optimize!(model)
+function build_model(; _kwargs...)
+    model = Model()
+    @variable(model, 0 <= x <= 3)
+    @variable(model, 0 <= y <= 4)
+    @variable(model, obj)
+    @constraint(model, ob, -x-y == obj)
+    @constraint(model, c1, y <= 2*(x)^(4) - 8*(x)^(3) + 8*x*x + 2)
+    @constraint(model, c2, y <= 4*(x)^(4) - 32*(x)^(3) + 88*x*x -96*x + 36)
+    @objective(model, Min, obj)
+    optimize!(model)
+    return model
+end
