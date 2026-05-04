@@ -1,10 +1,12 @@
 function Base.show(io::IO, variable::Variable)
     print(io, "@variable(model, ")
     name = variable.name * _format_axes(variable.axes)
-    lb = isnothing(variable.lower_bound) ? nothing :
-         _ampl_range_to_julia(variable.lower_bound)
-    ub = isnothing(variable.upper_bound) ? nothing :
-         _ampl_range_to_julia(variable.upper_bound)
+    lb =
+        isnothing(variable.lower_bound) ? nothing :
+        _ampl_range_to_julia(variable.lower_bound)
+    ub =
+        isnothing(variable.upper_bound) ? nothing :
+        _ampl_range_to_julia(variable.upper_bound)
     if !isnothing(variable.fixed_value)
         print(io, "$name == $(_ampl_range_to_julia(variable.fixed_value))")
     else
@@ -70,10 +72,7 @@ end
 
 function Base.show(io::IO, constraint::Constraint)
     name = constraint.name * _format_axes(constraint.axes)
-    print(
-        io,
-        "@constraint(model, $name, $(constraint.expression))",
-    )
+    print(io, "@constraint(model, $name, $(constraint.expression))")
     return
 end
 
