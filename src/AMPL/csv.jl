@@ -17,7 +17,7 @@ import CSV
 function _write_csv_value(path::String, v::Number)
     open(path, "w") do io
         println(io, "value")
-        println(io, v)
+        return println(io, v)
     end
     return
 end
@@ -46,12 +46,7 @@ function _write_csv_value(
     return
 end
 
-function _write_labeled_matrix(
-    path::String,
-    rows,
-    cols,
-    cell::Function,
-)
+function _write_labeled_matrix(path::String, rows, cols, cell::Function)
     open(path, "w") do io
         print(io, "index")
         for c in cols
@@ -245,11 +240,12 @@ function read_2d_csv(path::String)
         Any[_try_numeric(String(c)) for c in cols[2:end]],
     )
     rows = collect(f)
-    row_labels = _convert_to_concrete_eltype(
-        Any[_try_numeric(r[1]) for r in rows],
-    )
-    raw = Any[_try_numeric(rows[i][cols[j+1]]) for i in eachindex(rows),
-        j in eachindex(col_labels)]
+    row_labels =
+        _convert_to_concrete_eltype(Any[_try_numeric(r[1]) for r in rows])
+    raw = Any[
+        _try_numeric(rows[i][cols[j+1]]) for
+        i in eachindex(rows), j in eachindex(col_labels)
+    ]
     T = _concrete_eltype(raw)
     M = convert(Matrix{T}, raw)
     return JuMP.Containers.DenseAxisArray(M, row_labels, col_labels)
