@@ -229,6 +229,33 @@ end
 # parse_constraint
 # ============================================================
 
+function test_render_variable_with_fixed_value()
+    # `Base.show(io, ::Variable)` emits `name == value` when
+    # `fixed_value` is set (GAMS `.fx` bound).
+    model = JuMPConverter.Model()
+    G.parse_variable(model, "x")
+    G.parse_bound(model, "x", "fx", "0.5")
+    out = sprint(print, model.variables["x"])
+    @test out == "@variable(model, x == 0.5)"
+    return
+end
+
+function test_render_binary_variable()
+    model = JuMPConverter.Model()
+    G.parse_variable(model, "b"; binary = true)
+    out = sprint(print, model.variables["b"])
+    @test out == "@variable(model, b, Bin)"
+    return
+end
+
+function test_render_integer_variable()
+    model = JuMPConverter.Model()
+    G.parse_variable(model, "i"; integer = true)
+    out = sprint(print, model.variables["i"])
+    @test out == "@variable(model, i, Int)"
+    return
+end
+
 function test_parse_constraint_basic_uses_clean_expression()
     model = JuMPConverter.Model()
     G.parse_constraint(model, "c1", "x =l= 5")
