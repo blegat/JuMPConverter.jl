@@ -468,6 +468,105 @@ function test_example1_with_model()
     return
 end
 
+# ============================================================
+# CSV export / import (dat_to_csv + read_*_csv)
+# ============================================================
+
+function test_dat_to_csv_roundtrip_set_scalar_1d_2d()
+    # Roundtrip: parse .dat → write CSVs → read CSVs back. We use
+    # integer-indexed sets to stay within the parser's existing
+    # capabilities for simple-form 1D params (ALPHA below).
+    mod = """
+    param n integer;
+    set K := 1..3;
+    param ALPHA {k in K};
+    param BETA {i in 1..2, j in 1..3};
+    var x {k in K} >= 0;
+    minimize obj: sum {k in K} ALPHA[k] * x[k];
+    s.t. c {k in K}: x[k] >= 0;
+    """
+    dat = """
+    param n := 5;
+    param ALPHA :=
+    1 1.5
+    2 2.5
+    3 3.5;
+    param BETA :=
+    1 1 11.0
+    1 2 12.0
+    1 3 13.0
+    2 1 21.0
+    2 2 22.0
+    2 3 23.0;
+    """
+    mktempdir() do dir
+        mod_path = joinpath(dir, "m.mod")
+        dat_path = joinpath(dir, "d.dat")
+        write(mod_path, mod)
+        write(dat_path, dat)
+        model = JuMPConverter.AMPL.read_model(mod_path)
+        csv_dir = joinpath(dir, "csvs")
+        JuMPConverter.AMPL.dat_to_csv(dat_path, model, csv_dir)
+        @test isfile(joinpath(csv_dir, "n.csv"))
+        @test isfile(joinpath(csv_dir, "ALPHA.csv"))
+        @test isfile(joinpath(csv_dir, "BETA.csv"))
+        n = JuMPConverter.AMPL.read_scalar_csv(joinpath(csv_dir, "n.csv"))
+        @test n == 5
+        ALPHA = JuMPConverter.AMPL.read_1d_csv(joinpath(csv_dir, "ALPHA.csv"))
+        @test ALPHA[1] == 1.5
+        @test ALPHA[3] == 3.5
+        BETA = JuMPConverter.AMPL.read_2d_csv(joinpath(csv_dir, "BETA.csv"))
+        @test BETA[1, 1] == 11.0
+        @test BETA[2, 3] == 23.0
+    end
+    return
+end
+
+function test_dat_to_csv_via_dat_schema()
+    # The Model-accepting overload must redirect through DatSchema.
+    mod = """
+    param a integer;
+    var x >= 0;
+    minimize obj: a * x;
+    s.t. c: x >= a;
+    """
+    dat = "param a := 7;"
+    mktempdir() do dir
+        mod_path = joinpath(dir, "m.mod")
+        dat_path = joinpath(dir, "d.dat")
+        write(mod_path, mod)
+        write(dat_path, dat)
+        model = JuMPConverter.AMPL.read_model(mod_path)
+        schema = JuMPConverter.AMPL.DatSchema(model)
+        d1 = joinpath(dir, "via_model")
+        d2 = joinpath(dir, "via_schema")
+        JuMPConverter.AMPL.dat_to_csv(dat_path, model, d1)
+        JuMPConverter.AMPL.dat_to_csv(dat_path, schema, d2)
+        @test read(joinpath(d1, "a.csv"), String) ==
+              read(joinpath(d2, "a.csv"), String)
+    end
+    return
+end
+
+function test_dat_to_csv_long_form_for_3d()
+    # 3D values use long form; reader returns a DenseAxisArray when
+    # the indices fill a complete grid.
+    path = joinpath(@__DIR__, "examples", "example1.dat")
+    model = JuMPConverter.AMPL.read_model(
+        joinpath(@__DIR__, "input", "elec_pricing.mod"),
+    )
+    mktempdir() do dir
+        JuMPConverter.AMPL.dat_to_csv(path, model, dir)
+        E_csv = read(joinpath(dir, "E.csv"), String)
+        @test occursin("i1,i2,i3,value", E_csv)
+        E = JuMPConverter.AMPL.read_nd_csv(joinpath(dir, "E.csv"), 3)
+        @test E isa JuMPConverter.JuMP.Containers.DenseAxisArray
+        @test ndims(E) == 3
+        @test E[1, 1, 1] ≈ 205.014795
+    end
+    return
+end
+
 end  # module
 
 TestDatParsing.runtests()

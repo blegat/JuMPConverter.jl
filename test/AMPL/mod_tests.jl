@@ -635,10 +635,11 @@ function test_constraint_axes_with_condition()
     return
 end
 
-function test_generated_file_has_dat_loader()
-    # When the model has parameters, `Base.show` must emit both the
-    # kwarg and the dat-path build_model methods, and the file must
-    # parse as Julia.
+function test_generated_file_has_data_loaders()
+    # When the model has parameters/sets, `Base.show` must emit the
+    # kwarg method, the path dispatcher (`build_model(::String)`), and
+    # both helpers (`_build_model_from_dat`, `_build_model_from_csv`).
+    # The whole file must parse as Julia.
     mod = """
     set K;
     param ALPHA {k in K} default 1.0;
@@ -649,18 +650,24 @@ function test_generated_file_has_dat_loader()
     model = JuMPConverter.AMPL.parse_model(mod)
     rendered = sprint(print, model)
     @test contains(rendered, "function build_model(;")
-    @test contains(rendered, "function build_model(dat_path::String)")
+    @test contains(rendered, "function build_model(path::String)")
+    @test contains(rendered, "isdir(path)")
+    @test contains(rendered, "function _build_model_from_dat(dat_path::String)")
+    @test contains(rendered, "function _build_model_from_csv(csv_dir::String)")
     @test contains(rendered, "JuMPConverter.AMPL.DatSchema(Dict{Symbol,Int}(")
     @test contains(rendered, ":ALPHA => 1")
+    @test contains(rendered, "JuMPConverter.AMPL.read_set_csv")
+    @test contains(rendered, "JuMPConverter.AMPL.read_1d_csv")
     @test contains(rendered, "build_model(; data...)")
+    @test contains(rendered, "build_model(; kw...)")
     @test Meta.parseall(rendered) isa Expr
     return
 end
 
-function test_no_dat_loader_when_no_parameters()
-    # GAMS-derived models (and any AMPL model with no `param`
-    # declarations) must not get the dat loader — there's no schema
-    # to embed and no `.dat` to consume.
+function test_no_data_loaders_when_no_params_or_sets()
+    # GAMS-derived models (and any AMPL model with no `param`/`set`
+    # declarations) must not get the data loaders — there's nothing
+    # to load.
     mod = """
     var x >= 0;
     minimize obj: x;
@@ -669,7 +676,9 @@ function test_no_dat_loader_when_no_parameters()
     model = JuMPConverter.AMPL.parse_model(mod)
     rendered = sprint(print, model)
     @test contains(rendered, "function build_model(")
-    @test !contains(rendered, "build_model(dat_path::String)")
+    @test !contains(rendered, "build_model(path::String)")
+    @test !contains(rendered, "_build_model_from_dat")
+    @test !contains(rendered, "_build_model_from_csv")
     @test !contains(rendered, "DatSchema")
     return
 end
