@@ -178,9 +178,7 @@ end
 # Recover an Int or Float64 from a CSV cell or header; fall back
 # to the raw string. Needed because CSV column headers are always
 # strings on disk, but we want `1, 2, 3` axis labels back as Ints.
-function _try_numeric(s)
-    s isa Number && return s
-    s isa AbstractString || return s
+function _try_numeric(s::AbstractString)
     v = tryparse(Int, s)
     isnothing(v) || return v
     v = tryparse(Float64, s)

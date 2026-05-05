@@ -593,6 +593,105 @@ function test_read_csv_via_schema()
     return
 end
 
+function test_csv_writers_for_dense_axis_arrays()
+    # Cover `_write_csv_value` overloads that fire only for
+    # DenseAxisArray with explicit labels (1D string-indexed, 2D, 3D)
+    # and the empty-SparseAxisArray fast-return. We construct the
+    # containers directly so we hit every shape regardless of which
+    # types the parser happens to materialize.
+    JuMP = JuMPConverter.JuMP
+    A = JuMPConverter.AMPL
+    mktempdir() do dir
+        # DenseAxisArray{T,1} with string labels.
+        v1 = JuMP.Containers.DenseAxisArray([1.0, 2.0, 3.0], ["A", "B", "C"])
+        p1 = joinpath(dir, "v1.csv")
+        A._write_csv_value(p1, v1)
+        @test read(p1, String) == "index,value\nA,1.0\nB,2.0\nC,3.0\n"
+        # DenseAxisArray{T,2}.
+        m2 = JuMP.Containers.DenseAxisArray(
+            Float64[1 2; 3 4],
+            ["r1", "r2"],
+            ["c1", "c2"],
+        )
+        p2 = joinpath(dir, "m2.csv")
+        A._write_csv_value(p2, m2)
+        @test occursin("index,c1,c2", read(p2, String))
+        @test occursin("r1,1.0,2.0", read(p2, String))
+        # DenseAxisArray{T,3}.
+        m3 = JuMP.Containers.DenseAxisArray(
+            reshape(Float64[1:8;], 2, 2, 2),
+            ["a", "b"],
+            [10, 20],
+            ["x", "y"],
+        )
+        p3 = joinpath(dir, "m3.csv")
+        A._write_csv_value(p3, m3)
+        out = read(p3, String)
+        @test occursin("i1,i2,i3,value", out)
+        @test occursin("a,10,x,1.0", out)
+        # Empty SparseAxisArray: short-circuit return, nothing written.
+        empty_sp =
+            JuMP.Containers.SparseAxisArray(Dict{Tuple{Int,Int},Float64}())
+        p_empty = joinpath(dir, "empty.csv")
+        A._write_csv_value(p_empty, empty_sp)
+        @test !isfile(p_empty)
+    end
+    return
+end
+
+function test_csv_readers_strings_and_2col_and_sparse_nd()
+    # Cover: read_set_csv on string elements (also exercises the
+    # `_try_numeric` String fallback), read_1d_csv 2-column branch,
+    # and read_nd_csv sparse branch.
+    A = JuMPConverter.AMPL
+    JuMP = JuMPConverter.JuMP
+    mktempdir() do dir
+        # Set with non-numeric elements.
+        set_path = joinpath(dir, "S.csv")
+        write(set_path, "value\nA\nB\nC\n")
+        @test A.read_set_csv(set_path) == ["A", "B", "C"]
+        # 2-column 1D CSV.
+        path1d = joinpath(dir, "ALPHA.csv")
+        write(path1d, "index,value\nA,1.5\nB,2.5\n")
+        ALPHA = A.read_1d_csv(path1d)
+        @test ALPHA isa JuMP.Containers.DenseAxisArray
+        @test ALPHA["A"] == 1.5
+        # 3D long-form with sparse coverage.
+        sp_path = joinpath(dir, "sp.csv")
+        write(sp_path, "i1,i2,i3,value\n1,1,1,10\n2,2,2,80\n")
+        E = A.read_nd_csv(sp_path, 3)
+        @test E isa JuMP.Containers.SparseAxisArray
+    end
+    return
+end
+
+function test_read_csv_covers_every_ndims_branch()
+    # Exercise read_csv's per-ndims dispatch (set, scalar, 1D, 2D,
+    # 3D) plus the "set CSV present" branch.
+    A = JuMPConverter.AMPL
+    mktempdir() do dir
+        write(joinpath(dir, "S.csv"), "value\n1\n2\n3\n")
+        write(joinpath(dir, "n.csv"), "value\n7\n")
+        write(joinpath(dir, "ALPHA.csv"), "value\n1.0\n2.0\n3.0\n")
+        write(joinpath(dir, "BETA.csv"), "index,1,2\n1,11,12\n2,21,22\n")
+        write(
+            joinpath(dir, "GAMMA.csv"),
+            "i1,i2,i3,value\n1,1,1,1\n1,1,2,2\n1,2,1,3\n1,2,2,4\n2,1,1,5\n2,1,2,6\n2,2,1,7\n2,2,2,8\n",
+        )
+        schema = A.DatSchema(
+            Dict{Symbol,Int}(:n => 0, :ALPHA => 1, :BETA => 2, :GAMMA => 3),
+            [:S],
+        )
+        loaded = A.read_csv(dir, schema)
+        @test loaded[:S] == [1, 2, 3]
+        @test loaded[:n] == 7
+        @test loaded[:ALPHA] == [1.0, 2.0, 3.0]
+        @test loaded[:BETA][1, 1] == 11
+        @test loaded[:GAMMA][1, 1, 1] == 1
+    end
+    return
+end
+
 function test_dat_to_csv_long_form_for_3d()
     # 3D values use long form; reader returns a DenseAxisArray when
     # the indices fill a complete grid.
