@@ -67,8 +67,7 @@ function test_clean_expression_power_with_whitespace_before_paren()
 end
 
 function test_clean_expression_multiple_power_calls()
-    @test G.clean_expression("power(a, 2) + power(b, 3)") ==
-          "(a)^(2) + (b)^(3)"
+    @test G.clean_expression("power(a, 2) + power(b, 3)") == "(a)^(2) + (b)^(3)"
     return
 end
 
