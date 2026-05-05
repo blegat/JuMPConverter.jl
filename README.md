@@ -30,14 +30,14 @@ using JuMPConverter
 model = JuMPConverter.AMPL.read_model("file.mof")
 ```
 
-### Loading data from a `.dat` file
+### Loading data from a `.dat` file or a CSV directory
 
 AMPL keeps the model structure (`.mod`) and the data (`.dat`) in
 separate files. The emitted Julia file is self-contained: it defines
-two `build_model` methods — a keyword-argument form taking each AMPL
-parameter and set, and a `build_model(dat_path::String)` overload that
-reads a `.dat` file and splats the result into the kwarg form. Once
-the `.jl` file is generated, the `.mod` is no longer needed at runtime:
+the keyword-argument `build_model(; S, W, ...)` plus a
+`build_model(path::String)` dispatcher that picks between a `.dat`
+file and a directory of CSVs based on `isdir(path)`. Once the `.jl`
+file is generated, the `.mod` is no longer needed at runtime:
 
 ```julia
 using JuMPConverter
@@ -46,11 +46,25 @@ open("file.jl", "w") do io
     println(io, model)
 end
 
-# In file.jl: both `build_model(; S, W, ...)` and `build_model(::String)`
 include("file.jl")
 
+# Load straight from the .dat
 jump_model = build_model("file.dat")
 ```
+
+You can also export a `.dat` to a directory of CSVs (one file per
+parameter or set) and pass that directory back to `build_model`:
+
+```julia
+JuMPConverter.AMPL.dat_to_csv("file.dat", model, "data/")
+jump_model = build_model("data/")
+```
+
+The CSV directory loader reads each kwarg's CSV when present, so any
+file you delete falls back to the kwarg's `.mod` default. CSV shape:
+scalars and sets are single-column; 1D parameters are `index, value`;
+2D parameters are labeled matrices (column headers from the second
+axis); 3+D parameters use long form (`i1, i2, ..., value`).
 
 If you already have a data dictionary (or want to override individual
 parameters), call the kwarg form directly. `JuMPConverter.AMPL.read_dat`

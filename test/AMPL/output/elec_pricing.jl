@@ -70,24 +70,26 @@ function build_model(;
     return model
 end
 
-function build_model(dat_path::String)
-    data = JuMPConverter.AMPL.read_dat(
-        dat_path,
-        JuMPConverter.AMPL.DatSchema(
-            Dict{Symbol,Int}(
-                :S => 0,
-                :W => 0,
-                :H => 0,
-                :X => 0,
-                :rho => 1,
-                :beta => 1,
-                :alpha => 1,
-                :E => 3,
-                :C => 2,
-                :R => 2,
-                :polyX => 2,
-            ),
+function build_model(path::String)
+    schema = JuMPConverter.AMPL.DatSchema(
+        Dict{Symbol,Int}(
+            :S => 0,
+            :W => 0,
+            :H => 0,
+            :X => 0,
+            :rho => 1,
+            :beta => 1,
+            :alpha => 1,
+            :E => 3,
+            :C => 2,
+            :R => 2,
+            :polyX => 2,
         ),
     )
+    data = if isdir(path)
+        JuMPConverter.AMPL.read_csv(path, schema)
+    else
+        JuMPConverter.AMPL.read_dat(path, schema)
+    end
     return build_model(; data...)
 end
