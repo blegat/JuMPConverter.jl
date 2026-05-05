@@ -119,5 +119,30 @@ function Base.show(io::IO, model::JuMPConverter.Model)
     println(io, "    ", model.objective)
     println(io, "    return model")
     print(io, "end")
+    if !isempty(model.parameters)
+        println(io)
+        println(io)
+        _print_dat_loader(io, model)
+    end
+    return
+end
+
+# Emit a `build_model(dat_path::String)` overload that hard-codes the
+# minimal `DatSchema` derived from this model and dispatches to the
+# kwarg method. Lets the generated `.jl` load a `.dat` at runtime
+# without re-parsing the `.mod`.
+function _print_dat_loader(io::IO, model::JuMPConverter.Model)
+    println(io, "function build_model(dat_path::String)")
+    println(io, "    data = JuMPConverter.AMPL.read_dat(")
+    println(io, "        dat_path,")
+    println(io, "        JuMPConverter.AMPL.DatSchema(Dict{Symbol,Int}(")
+    for (name, p) in model.parameters
+        nd = isnothing(p.axes) ? 0 : length(p.axes.axes)
+        println(io, "            :$name => $nd,")
+    end
+    println(io, "        )),")
+    println(io, "    )")
+    println(io, "    return build_model(; data...)")
+    print(io, "end")
     return
 end

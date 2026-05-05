@@ -33,11 +33,11 @@ model = JuMPConverter.AMPL.read_model("file.mof")
 ### Loading data from a `.dat` file
 
 AMPL keeps the model structure (`.mod`) and the data (`.dat`) in
-separate files. The emitted Julia file defines a `build_model` function
-whose keyword arguments are the AMPL parameters declared in the `.mod`.
-To populate the model, parse the data with `read_dat` (passing the model
-so each parameter's dimensionality is resolved correctly) and splat the
-resulting dictionary into `build_model`:
+separate files. The emitted Julia file is self-contained: it defines
+two `build_model` methods — a keyword-argument form taking each AMPL
+parameter and set, and a `build_model(dat_path::String)` overload that
+reads a `.dat` file and splats the result into the kwarg form. Once
+the `.jl` file is generated, the `.mod` is no longer needed at runtime:
 
 ```julia
 using JuMPConverter
@@ -46,17 +46,22 @@ open("file.jl", "w") do io
     println(io, model)
 end
 
-# In file.jl: `function build_model(; S, W, ...) ... end`
+# In file.jl: both `build_model(; S, W, ...)` and `build_model(::String)`
 include("file.jl")
 
-data = JuMPConverter.AMPL.read_dat("file.dat", model)
-jump_model = build_model(; data...)
+jump_model = build_model("file.dat")
 ```
 
-`data` is a `Dict{Symbol,Any}` (Symbol keys so it can be splatted into
-the keyword arguments of `build_model`) mapping each parameter or set
-name to a scalar, `Vector`, `Array`, `JuMP.Containers.DenseAxisArray`,
-or `JuMP.Containers.SparseAxisArray` depending on the declaration.
+If you already have a data dictionary (or want to override individual
+parameters), call the kwarg form directly. `JuMPConverter.AMPL.read_dat`
+returns a `Dict{Symbol,Any}` mapping each parameter or set name to a
+scalar, `Vector`, `Array`, `JuMP.Containers.DenseAxisArray`, or
+`JuMP.Containers.SparseAxisArray`:
+
+```julia
+data = JuMPConverter.AMPL.read_dat("file.dat", model)  # or pass a DatSchema
+jump_model = build_model(; data...)
+```
 
 To read a GAMS™ model `file.gms`, do:
 ```julia
