@@ -8,3 +8,5 @@ let cace_dir = joinpath(@__DIR__, "input", "CACE-D-21-01061", "GAMS_files")
 end
 
 test_output(JuMPConverter.GAMS.read_model, @__DIR__)
+
+include(joinpath(@__DIR__, "parser_tests.jl"))
