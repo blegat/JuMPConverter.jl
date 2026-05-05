@@ -256,6 +256,38 @@ function read_2d_csv(path::String)
 end
 
 """
+    read_csv(csv_dir::String, schema::DatSchema) -> Dict{Symbol, Any}
+
+Read a directory of CSVs (one file per parameter or set named in
+`schema`) and return a dictionary suitable for splatting into a
+generated `build_model(; ...)` kwarg method. Files that are missing
+are simply skipped, so the corresponding kwarg's `.mod` default takes
+effect.
+"""
+function read_csv(csv_dir::String, schema::DatSchema)
+    data = Dict{Symbol,Any}()
+    for name in schema.set_names
+        path = joinpath(csv_dir, string(name) * ".csv")
+        isfile(path) || continue
+        data[name] = read_set_csv(path)
+    end
+    for (name, nd) in schema.param_ndims
+        path = joinpath(csv_dir, string(name) * ".csv")
+        isfile(path) || continue
+        data[name] = if nd == 0
+            read_scalar_csv(path)
+        elseif nd == 1
+            read_1d_csv(path)
+        elseif nd == 2
+            read_2d_csv(path)
+        else
+            read_nd_csv(path, nd)
+        end
+    end
+    return data
+end
+
+"""
     read_nd_csv(path::String, ndims::Int) -> DenseAxisArray or SparseAxisArray
 
 Read a long-form CSV with `ndims` index columns followed by a value

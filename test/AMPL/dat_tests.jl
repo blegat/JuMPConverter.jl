@@ -548,6 +548,51 @@ function test_dat_to_csv_via_dat_schema()
     return
 end
 
+function test_read_csv_via_schema()
+    # `read_csv(csv_dir, schema)` reads only the CSV files listed in
+    # the schema, and skips missing ones so the kwarg's `.mod` default
+    # takes effect. Must mirror the shape of `read_dat`.
+    mod = """
+    set K := 1..3;
+    param n integer;
+    param ALPHA {k in K};
+    var x {k in K} >= 0;
+    minimize obj: sum {k in K} ALPHA[k] * x[k];
+    s.t. c {k in K}: x[k] >= 0;
+    """
+    dat = """
+    param n := 5;
+    param ALPHA :=
+    1 1.5
+    2 2.5
+    3 3.5;
+    """
+    mktempdir() do dir
+        mod_path = joinpath(dir, "m.mod")
+        dat_path = joinpath(dir, "d.dat")
+        write(mod_path, mod)
+        write(dat_path, dat)
+        model = JuMPConverter.AMPL.read_model(mod_path)
+        schema = JuMPConverter.AMPL.DatSchema(model)
+        # Sets in the schema (K is in the .mod, no .dat content for it
+        # in this example, but the schema lists it so read_csv can
+        # pick up a K.csv if present).
+        @test :K in schema.set_names
+        csv_dir = joinpath(dir, "csvs")
+        JuMPConverter.AMPL.dat_to_csv(dat_path, model, csv_dir)
+        data = JuMPConverter.AMPL.read_csv(csv_dir, schema)
+        @test data isa Dict{Symbol,Any}
+        @test data[:n] == 5
+        @test data[:ALPHA][1] == 1.5
+        @test data[:ALPHA][3] == 3.5
+        # Deleting a CSV makes that kwarg fall back to the .mod default.
+        rm(joinpath(csv_dir, "n.csv"))
+        data2 = JuMPConverter.AMPL.read_csv(csv_dir, schema)
+        @test !haskey(data2, :n)
+    end
+    return
+end
+
 function test_dat_to_csv_long_form_for_3d()
     # 3D values use long form; reader returns a DenseAxisArray when
     # the indices fill a complete grid.

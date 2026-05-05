@@ -71,66 +71,25 @@ function build_model(;
 end
 
 function build_model(path::String)
-    return isdir(path) ? _build_model_from_csv(path) :
-           _build_model_from_dat(path)
-end
-
-function _build_model_from_dat(dat_path::String)
-    data = JuMPConverter.AMPL.read_dat(
-        dat_path,
-        JuMPConverter.AMPL.DatSchema(
-            Dict{Symbol,Int}(
-                :S => 0,
-                :W => 0,
-                :H => 0,
-                :X => 0,
-                :rho => 1,
-                :beta => 1,
-                :alpha => 1,
-                :E => 3,
-                :C => 2,
-                :R => 2,
-                :polyX => 2,
-            ),
+    schema = JuMPConverter.AMPL.DatSchema(
+        Dict{Symbol,Int}(
+            :S => 0,
+            :W => 0,
+            :H => 0,
+            :X => 0,
+            :rho => 1,
+            :beta => 1,
+            :alpha => 1,
+            :E => 3,
+            :C => 2,
+            :R => 2,
+            :polyX => 2,
         ),
     )
+    data = if isdir(path)
+        JuMPConverter.AMPL.read_csv(path, schema)
+    else
+        JuMPConverter.AMPL.read_dat(path, schema)
+    end
     return build_model(; data...)
-end
-
-function _build_model_from_csv(csv_dir::String)
-    kw = Dict{Symbol,Any}()
-    let p = joinpath(csv_dir, "S.csv")
-        isfile(p) && (kw[:S] = JuMPConverter.AMPL.read_scalar_csv(p))
-    end
-    let p = joinpath(csv_dir, "W.csv")
-        isfile(p) && (kw[:W] = JuMPConverter.AMPL.read_scalar_csv(p))
-    end
-    let p = joinpath(csv_dir, "H.csv")
-        isfile(p) && (kw[:H] = JuMPConverter.AMPL.read_scalar_csv(p))
-    end
-    let p = joinpath(csv_dir, "X.csv")
-        isfile(p) && (kw[:X] = JuMPConverter.AMPL.read_scalar_csv(p))
-    end
-    let p = joinpath(csv_dir, "rho.csv")
-        isfile(p) && (kw[:rho] = JuMPConverter.AMPL.read_1d_csv(p))
-    end
-    let p = joinpath(csv_dir, "beta.csv")
-        isfile(p) && (kw[:beta] = JuMPConverter.AMPL.read_1d_csv(p))
-    end
-    let p = joinpath(csv_dir, "alpha.csv")
-        isfile(p) && (kw[:alpha] = JuMPConverter.AMPL.read_1d_csv(p))
-    end
-    let p = joinpath(csv_dir, "E.csv")
-        isfile(p) && (kw[:E] = JuMPConverter.AMPL.read_nd_csv(p, 3))
-    end
-    let p = joinpath(csv_dir, "C.csv")
-        isfile(p) && (kw[:C] = JuMPConverter.AMPL.read_2d_csv(p))
-    end
-    let p = joinpath(csv_dir, "R.csv")
-        isfile(p) && (kw[:R] = JuMPConverter.AMPL.read_2d_csv(p))
-    end
-    let p = joinpath(csv_dir, "polyX.csv")
-        isfile(p) && (kw[:polyX] = JuMPConverter.AMPL.read_2d_csv(p))
-    end
-    return build_model(; kw...)
 end

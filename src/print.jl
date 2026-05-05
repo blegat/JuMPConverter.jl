@@ -122,83 +122,40 @@ function Base.show(io::IO, model::JuMPConverter.Model)
     if !isempty(model.parameters) || !isempty(model.sets)
         println(io)
         println(io)
-        _print_path_dispatcher(io)
-        println(io)
-        println(io)
-        _print_dat_loader(io, model)
-        println(io)
-        println(io)
-        _print_csv_loader(io, model)
+        _print_data_loader(io, model)
     end
     return
 end
 
-# Emit `build_model(path::String)` that picks between the dat-file
-# loader and the CSV-directory loader based on `isdir(path)`.
-function _print_path_dispatcher(io::IO)
+# Emit a single `build_model(path::String)` that hard-codes the
+# `DatSchema` derived from this model and dispatches between
+# `read_dat` (for a `.dat` file) and `read_csv` (for a directory of
+# CSVs) based on `isdir(path)`. Lets the generated `.jl` load data
+# at runtime without re-parsing the `.mod`.
+function _print_data_loader(io::IO, model::JuMPConverter.Model)
     println(io, "function build_model(path::String)")
-    println(
-        io,
-        "    return isdir(path) ? _build_model_from_csv(path) : _build_model_from_dat(path)",
-    )
-    print(io, "end")
-    return
-end
-
-# Emit a `_build_model_from_dat(dat_path::String)` helper that
-# hard-codes the minimal `DatSchema` derived from this model and
-# dispatches to the kwarg method. Lets the generated `.jl` load a
-# `.dat` at runtime without re-parsing the `.mod`.
-function _print_dat_loader(io::IO, model::JuMPConverter.Model)
-    println(io, "function _build_model_from_dat(dat_path::String)")
-    println(io, "    data = JuMPConverter.AMPL.read_dat(")
-    println(io, "        dat_path,")
-    println(io, "        JuMPConverter.AMPL.DatSchema(Dict{Symbol,Int}(")
+    println(io, "    schema = JuMPConverter.AMPL.DatSchema(")
+    println(io, "        Dict{Symbol,Int}(")
     for (name, p) in model.parameters
         nd = isnothing(p.axes) ? 0 : length(p.axes.axes)
         println(io, "            :$name => $nd,")
     end
-    println(io, "        )),")
+    print(io, "        )")
+    if !isempty(model.sets)
+        println(io, ",")
+        print(io, "        [")
+        join(io, (":$n" for n in keys(model.sets)), ", ")
+        println(io, "],")
+    else
+        println(io)
+    end
     println(io, "    )")
+    println(io, "    data = if isdir(path)")
+    println(io, "        JuMPConverter.AMPL.read_csv(path, schema)")
+    println(io, "    else")
+    println(io, "        JuMPConverter.AMPL.read_dat(path, schema)")
+    println(io, "    end")
     println(io, "    return build_model(; data...)")
     print(io, "end")
-    return
-end
-
-# Emit a `_build_model_from_csv(csv_dir::String)` helper that reads
-# one CSV per kwarg from `csv_dir`, omitting any that are missing so
-# the corresponding kwarg's `.mod` default takes effect.
-function _print_csv_loader(io::IO, model::JuMPConverter.Model)
-    println(io, "function _build_model_from_csv(csv_dir::String)")
-    println(io, "    kw = Dict{Symbol,Any}()")
-    for name in keys(model.sets)
-        _emit_csv_kwarg(io, name, "JuMPConverter.AMPL.read_set_csv")
-    end
-    for (name, p) in model.parameters
-        nd = isnothing(p.axes) ? 0 : length(p.axes.axes)
-        if nd == 0
-            _emit_csv_kwarg(io, name, "JuMPConverter.AMPL.read_scalar_csv")
-        elseif nd == 1
-            _emit_csv_kwarg(io, name, "JuMPConverter.AMPL.read_1d_csv")
-        elseif nd == 2
-            _emit_csv_kwarg(io, name, "JuMPConverter.AMPL.read_2d_csv")
-        else
-            _emit_csv_kwarg(
-                io,
-                name,
-                "JuMPConverter.AMPL.read_nd_csv",
-                ", $nd",
-            )
-        end
-    end
-    println(io, "    return build_model(; kw...)")
-    print(io, "end")
-    return
-end
-
-function _emit_csv_kwarg(io::IO, name::AbstractString, reader::String, extra::AbstractString = "")
-    println(io, "    let p = joinpath(csv_dir, \"$name.csv\")")
-    println(io, "        isfile(p) && (kw[:$name] = $reader(p$extra))")
-    println(io, "    end")
     return
 end
