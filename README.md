@@ -24,6 +24,8 @@ Pkg.add("https://github.com/blegat/JuMPConverter.jl")
 
 ## Use with JuMP
 
+### AMPL™ converter
+
 To read an AMPL™ model `file.mod`, do
 ```julia
 using JuMPConverter
@@ -76,6 +78,8 @@ scalar, `Vector`, `Array`, `JuMP.Containers.DenseAxisArray`, or
 data = JuMPConverter.AMPL.read_dat("file.dat", model)  # or pass a DatSchema
 jump_model = build_model(; data...)
 ```
+
+### GAMS™ converter
 
 To read a GAMS™ model `file.gms`, do:
 ```julia
