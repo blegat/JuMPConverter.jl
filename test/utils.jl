@@ -13,24 +13,30 @@ end
 
 name(f) = split(f, ".")[1]
 
-function test_io(reader, input_dir, output_dir)
+function test_io(reader, input_dir, output_dir; ext::String = "")
     tmp = joinpath(@__DIR__, "tmp.jl")
-    @testset "$(name(f))" for f in readdir(input_dir)
-        base_name = name(f)
-        model = reader(joinpath(input_dir, f))
-        open(tmp, "w") do io
-            return println(io, model)
+    for f in readdir(input_dir)
+        # Skip subdirectories and any file whose extension doesn't
+        # match `ext` (e.g. companion `.dat` files alongside `.mod`s).
+        isfile(joinpath(input_dir, f)) || continue
+        isempty(ext) || endswith(f, ext) || continue
+        @testset "$(name(f))" begin
+            base_name = name(f)
+            model = reader(joinpath(input_dir, f))
+            open(tmp, "w") do io
+                return println(io, model)
+            end
+            JuliaFormatter.format_file(tmp)
+            JuliaFormatter.format_file(tmp)
+            test_files(tmp, joinpath(output_dir, base_name * ".jl"))
         end
-        JuliaFormatter.format_file(tmp)
-        JuliaFormatter.format_file(tmp)
-        test_files(tmp, joinpath(output_dir, base_name * ".jl"))
     end
 end
 
-function test_io(reader, root_dir)
+function test_io(reader, root_dir; ext::String = "")
     input_dir = joinpath(root_dir, "input")
     output_dir = joinpath(root_dir, "output")
-    return test_io(reader, input_dir, output_dir)
+    return test_io(reader, input_dir, output_dir; ext)
 end
 
 """
