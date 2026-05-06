@@ -26,13 +26,25 @@ Pkg.add("https://github.com/blegat/JuMPConverter.jl")
 
 ### AMPL™ converter
 
-To read an AMPL™ model `file.mod`, do
+To read an AMPL™ model `file.mod` with (optional) data in `file.dat` into a JuMP model, use the following:
 ```julia
 using JuMPConverter
-model = JuMPConverter.AMPL.read_model("file.mof")
+model = JuMPConverter.read_from_file("file.mod", "file.dat")
 ```
 
-### Loading data from a `.dat` file or a CSV directory
+#### Convert the `.mod` into `.jl`
+
+Internally, `read_from_file` convert the `.mod` as a `.jl` file using JuMP to model the problem.
+To get this `.jl` file, use the following:
+```julia
+using JuMPConverter
+model = JuMPConverter.AMPL.read_model("file.mod")
+open("file.jl", "w") do io
+    println(io, model)
+end
+```
+
+#### Loading data from a `.dat` file
 
 AMPL keeps the model structure (`.mod`) and the data (`.dat`) in
 separate files. The emitted Julia file is self-contained: it defines
@@ -42,17 +54,27 @@ file and a directory of CSVs based on `isdir(path)`. Once the `.jl`
 file is generated, the `.mod` is no longer needed at runtime:
 
 ```julia
-using JuMPConverter
-model = JuMPConverter.AMPL.read_model("file.mod")
-open("file.jl", "w") do io
-    println(io, model)
-end
-
 include("file.jl")
 
 # Load straight from the .dat
 jump_model = build_model("file.dat")
 ```
+
+Internally, this loads the `.dat` file into a data dictionary.
+`JuMPConverter.AMPL.read_dat`
+returns a `Dict{Symbol,Any}` mapping each parameter or set name to a
+scalar, `Vector`, `Array`, `JuMP.Containers.DenseAxisArray`, or
+`JuMP.Containers.SparseAxisArray`. Doing this in two steps
+can be useful if you want to inspect the dictionary.
+One caveat is that you still need to keep the `model` (output of
+`JuMPConverter.AMPL.read_model`) around (or you need to use a `DatSchema` as
+done in the `file.jl`):
+```julia
+data = JuMPConverter.AMPL.read_dat("file.dat", model)
+jump_model = build_model(; data...)
+```
+
+#### Loading data from CSV files
 
 You can also export a `.dat` to a directory of CSVs (one file per
 parameter or set) and pass that directory back to `build_model`:
@@ -67,17 +89,6 @@ file you delete falls back to the kwarg's `.mod` default. CSV shape:
 scalars and sets are single-column; 1D parameters are `index, value`;
 2D parameters are labeled matrices (column headers from the second
 axis); 3+D parameters use long form (`i1, i2, ..., value`).
-
-If you already have a data dictionary (or want to override individual
-parameters), call the kwarg form directly. `JuMPConverter.AMPL.read_dat`
-returns a `Dict{Symbol,Any}` mapping each parameter or set name to a
-scalar, `Vector`, `Array`, `JuMP.Containers.DenseAxisArray`, or
-`JuMP.Containers.SparseAxisArray`:
-
-```julia
-data = JuMPConverter.AMPL.read_dat("file.dat", model)  # or pass a DatSchema
-jump_model = build_model(; data...)
-```
 
 ### GAMS™ converter
 
