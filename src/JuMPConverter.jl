@@ -44,9 +44,7 @@ function read_from_file(
     elseif ext == ".gms"
         GAMS.read_model
     else
-        error(
-            "Unsupported extension '$ext' for $model_path; expected .mod or .gms",
-        )
+        error("Unsupported extension '$ext' for $model_path; expected .mod or .gms")
     end
     parsed = reader(model_path)
     sandbox = Module(:JuMPConverterSandbox)
