@@ -8,7 +8,6 @@ function Base.show(io::IO, variable::Variable)
         isnothing(variable.upper_bound) ? nothing :
         _ampl_range_to_julia(variable.upper_bound)
     if !isnothing(variable.fixed_value)
-        @show @__LINE__
         print(io, "$name == $(_ampl_range_to_julia(variable.fixed_value))")
     else
         if !isnothing(lb) && !isnothing(ub)
@@ -24,10 +23,8 @@ function Base.show(io::IO, variable::Variable)
         end
     end
     if variable.binary
-        @show @__LINE__
         print(io, ", Bin")
     elseif variable.integer
-        @show @__LINE__
         print(io, ", Int")
     end
     print(io, ")")
