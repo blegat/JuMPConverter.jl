@@ -31,6 +31,17 @@ function test_read_ampl_mod_with_dat()
     return
 end
 
+function test_read_from_file_dummy_elec_pricing_dat()
+    # Smoke test on the dummy `.dat` shipped alongside the `.mod` —
+    # exercises the full read_from_file path on a model with sets,
+    # scalars, 1D, 2D and 3D parameters.
+    mod = joinpath(@__DIR__, "AMPL", "input", "elec_pricing.mod")
+    dat = joinpath(@__DIR__, "AMPL", "input", "elec_pricing.dat")
+    jm = JuMPConverter.read_from_file(mod, dat)
+    @test jm isa JuMP.Model
+    return
+end
+
 # ============================================================
 # AMPL — kwargs forwarded to the kwarg `build_model`
 # ============================================================
